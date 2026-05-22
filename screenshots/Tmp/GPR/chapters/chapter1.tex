@@ -1,0 +1,178 @@
+\chapter{Tổng quan về hệ thống}
+
+\section{Bối cảnh và vấn đề thực tế}
+
+Trong bối cảnh chuyển đổi số giáo dục diễn ra mạnh mẽ, các nền tảng học tập trực tuyến (E-Learning) đã trở nên phổ biến và được xem là giải pháp quan trọng để duy trì hoạt động giảng dạy cũng như mở rộng cơ hội tiếp cận tri thức. Tuy nhiên, tại Việt Nam, phần lớn các trung tâm ngoại ngữ, trung tâm kỹ năng và lớp học quy mô vừa và nhỏ (dưới 500 học viên) vẫn đang gặp nhiều khó khăn trong việc số hóa công tác quản lý đào tạo.
+
+Qua các thông tin khảo sát tại các trung tâm ngoại ngữ trên địa bàn Thành phố Hồ Chí Minh, nhóm nhận thấy ba vấn đề chính:
+
+\begin{enumerate}
+    \item \textbf{Quản lý dữ liệu phân tán:} Học viên, khóa học, bài giảng và điểm số được lưu trữ bằng các tệp Excel hay Google Sheets, dẫn đến khó khăn trong tra cứu, dễ xảy ra sai sót và thiếu tính bảo mật.
+    \item \textbf{Thiếu công cụ tương tác tập trung:} Giáo viên mất nhiều thời gian gửi tài liệu qua Zalo, Email; học viên không có nơi tập trung để theo dõi lộ trình học, nộp bài tập hay nhận phản hồi.
+    \item \textbf{Rào cản chi phí và công nghệ:} Các hệ thống LMS lớn (Canvas, Moodle, Blackboard) yêu cầu chi phí triển khai cao, cấu hình phức tạp, không phù hợp với quy mô nhỏ.
+\end{enumerate}
+
+Từ những vấn đề trên, nhóm quyết định xây dựng một hệ thống quản lý học tập trực tuyến (E-Learning Management System) với mục tiêu tạo ra giải pháp toàn diện, tiết kiệm chi phí và dễ dàng triển khai cho các đơn vị giáo dục quy mô vừa và nhỏ.
+
+\section{Mục tiêu và phạm vi đề tài}
+
+\subsection{Mục tiêu tổng quát}
+Xây dựng một ứng dụng web hoàn chỉnh, cho phép các trung tâm đào tạo số hóa quy trình quản lý lớp học, học viên, bài giảng và đánh giá, đồng thời hỗ trợ mô hình học tập Blended Learning (kết hợp trực tiếp và trực tuyến).
+
+\subsection{Mục tiêu cụ thể (chức năng)}
+\begin{itemize}
+    \item Phân quyền người dùng với ba vai trò chính: \textbf{Admin} (quản trị hệ thống), \textbf{Teacher} (giáo viên), \textbf{Student} (học viên).
+    \item Quản lý khóa học, bài giảng (video/text), danh sách lớp học.
+    \item Hệ thống bài tập trắc nghiệm (quiz) tự động chấm điểm, bài tập tự luận nộp file.
+    \item Theo dõi tiến độ học tập (progress tracking) qua dashboard trực quan.
+    \item Tích hợp cổng thanh toán giả lập (mô phỏng) để mua khóa học.
+    \item Giao diện responsive, bảo mật cơ bản (xác thực JWT, mã hóa mật khẩu).
+\end{itemize}
+
+\subsection{Phạm vi đề tài}
+Hệ thống tập trung vào các nghiệp vụ cốt lõi của một LMS dành cho quy mô trung bình: đăng ký/đăng nhập, quản lý khóa học (CRUD), quản lý video bài giảng, tạo quiz và chấm điểm tự động, xem tiến độ. Các tính năng nâng cao như chatbot, họp trực tuyến, chat real-time, đề xuất khóa học bằng AI được xem là hướng phát triển trong tương lai.
+
+\section{Khảo sát yêu cầu hệ thống}
+Dựa trên khảo sát và phân tích nghiệp vụ, nhóm đã xác định các yêu cầu chức năng và phi chức năng cho hệ thống.
+
+\subsection{Yêu cầu chức năng}
+Bảng \ref{tab:functional} liệt kê các chức năng chính theo từng loại người dùng.
+
+\begin{table}[H]
+\centering
+\caption{Yêu cầu chức năng theo vai trò}
+\label{tab:functional}
+\begin{tabular}{|p{2.5cm}|p{10cm}|}
+\hline
+\textbf{Vai trò} & \textbf{Chức năng} \\ \hline
+Khách (chưa đăng nhập) & Đăng ký tài khoản, đăng nhập, xem danh sách khóa học, xem chi tiết khóa học. \\ \hline
+Học viên (Student) & Xem khóa học đã mua, học video, làm bài tập trắc nghiệm, xem điểm và tiến độ, cập nhật hồ sơ cá nhân. \\ \hline
+Giáo viên (Teacher) & Tạo/sửa/xóa khóa học, thêm/sửa/xóa bài giảng video, tạo/sửa/xóa bộ câu hỏi trắc nghiệm, chấm bài tự luận (nếu có), xem danh sách học viên của lớp. \\ \hline
+Quản trị (Admin) & Quản lý tất cả người dùng (thêm/sửa/xóa/gán vai trò), quản lý tất cả khóa học, quản lý danh mục, thống kê doanh thu và số liệu hệ thống. \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Yêu cầu phi chức năng}
+\begin{itemize}
+    \item \textbf{Hiệu năng:} Thời gian tải trang dưới 3 giây, API phản hồi trung bình dưới 500ms.
+    \item \textbf{Bảo mật:} Mật khẩu được mã hóa bằng bcrypt, API được bảo vệ bằng JWT, có phân quyền truy cập (middleware). Chống tấn công XSS, CSRF cơ bản.
+    \item \textbf{Khả dụng:} Hệ thống hoạt động 24/7, thời gian downtime tối đa 1\% (dựa trên nền tảng cloud uy tín).
+    \item \textbf{Tương thích:} Trình duyệt Chrome, Firefox, Edge phiên bản mới nhất. Giao diện responsive trên màn hình desktop, tablet và điện thoại.
+    \item \textbf{Dễ bảo trì:} Mã nguồn được tổ chức theo mô hình MVC rõ ràng, có comment cơ bản, cấu trúc thư mục thống nhất.
+\end{itemize}
+
+\section{Công nghệ sử dụng}
+Nhóm lựa chọn \textbf{MERN Stack} làm nền tảng chính vì tính đồng nhất về ngôn ngữ JavaScript, cộng đồng lớn và khả năng triển khai nhanh. Bảng \ref{tab:tech} mô tả chi tiết các công nghệ, thư viện và mục đích sử dụng.
+
+\begin{table}[H]
+\centering
+\caption{Công nghệ và thư viện áp dụng}
+\label{tab:tech}
+\begin{tabular}{|p{3cm}|p{4cm}|p{7cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Công nghệ / Thư viện} & \textbf{Mục đích} \\ \hline
+Frontend & React 18, Tailwind CSS, Redux Toolkit & Xây dựng giao diện người dùng, quản lý state, thiết kế responsive. \\ \hline
+Backend & Node.js, Express.js & Xây dựng RESTful API, xử lý logic nghiệp vụ. \\ \hline
+Database & MongoDB, Mongoose & Lưu trữ dữ liệu, định nghĩa schema, validation. \\ \hline
+Xác thực & JSON Web Token (JWT), bcrypt & Xác thực người dùng, bảo vệ API, mã hóa mật khẩu. \\ \hline
+Lưu trữ file & Cloudinary, Multer & Upload video và hình ảnh bài giảng. \\ \hline
+Kiểm thử & Postman, React Testing Library & Kiểm thử API, kiểm thử đơn vị component. \\ \hline
+Triển khai & Vercel (frontend), Render (backend), MongoDB Atlas & Hosting, CI/CD đơn giản. \\ \hline
+Quản lý mã nguồn & Git, GitHub & Lưu trữ, theo dõi phiên bản, làm việc nhóm. \\ \hline
+Quản lý công việc & Trello, Google Meet & Lập kế hoạch, họp nhóm, phân công nhiệm vụ. \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Quy trình thực hiện dự án}
+Nhóm áp dụng quy trình phát triển phần mềm gồm 7 giai đoạn chính, được minh họa trong Hình \ref{fig:process}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.2cm,
+    every node/.style={align=center, font=\small},
+    box/.style={rectangle, draw=blue!50, rounded corners, minimum height=1.2cm, minimum width=6.5cm, fill=blue!5, thick, drop shadow},
+    arrow/.style={-Stealth, thick, color=blue!70}
+]
+\node[box] (1) {\textbf{Giai đoạn 1: Phân tích \& Thiết kế} \\ (Khảo sát nghiệp vụ, Use-case, ERD, UI/UX)};
+\node[box, below=of 1] (2) {\textbf{Giai đoạn 2: Khởi tạo dự án} \\ (Thiết lập Git, Môi trường Dev, Cấu trúc Folder)};
+\node[box, below=of 2] (3) {\textbf{Giai đoạn 3: Phát triển Backend} \\ (CSDL, RESTful API, Auth, Upload)};
+\node[box, below=of 3] (4) {\textbf{Giai đoạn 4: Phát triển Frontend} \\ (Component, Tích hợp API, State Management)};
+\node[box, below=of 4] (5) {\textbf{Giai đoạn 5: Kiểm thử} \\ (Unit Test, UAT, Fix bug)};
+\node[box, below=of 5] (6) {\textbf{Giai đoạn 6: Triển khai} \\ (Deploy lên Vercel/Render, Cấu hình Domain)};
+\node[box, below=of 6] (7) {\textbf{Giai đoạn 7: Tổng kết} \\ (Viết báo cáo, Slide, Quay video demo nếu cần)};
+\draw[arrow] (1) -- (2);
+\draw[arrow] (2) -- (3);
+\draw[arrow] (3) -- (4);
+\draw[arrow] (4) -- (5);
+\draw[arrow] (5) -- (6);
+\draw[arrow] (6) -- (7);
+\end{tikzpicture}
+\caption{Quy trình thực hiện dự án 7 giai đoạn}
+\label{fig:process}
+\end{figure}
+
+Cụ thể, các mốc thời gian dự kiến:
+\begin{itemize}
+    \item Tuần 1–2: Phân tích, thiết kế database, wireframe.
+    \item Tuần 3–6: Phát triển backend (API) và khung frontend.
+    \item Tuần 7–9: Hoàn thiện tính năng nghiệp vụ, tích hợp.
+    \item Tuần 10: Kiểm thử, sửa lỗi.
+    \item Tuần 11: Triển khai trên cloud.
+    \item Tuần 12: Viết báo cáo, chuẩn bị thuyết trình.
+\end{itemize}
+
+\section{Phân công vai trò nhóm}
+Nhóm thực hiện gồm 4 thành viên, hoạt động theo mô hình Agile/Scrum đơn giản hóa. Bảng \ref{tab:roles} mô tả vai trò và trách nhiệm chính.
+
+\begin{table}[H]
+\centering
+\caption{Phân công vai trò trong nhóm}
+\label{tab:roles}
+\begin{tabular}{|p{3.2cm}|p{2.3cm}|p{9cm}|}
+\hline
+\textbf{Họ tên} & \textbf{MSSV} & \textbf{Vai trò / Trách nhiệm chính} \\ \hline
+Trần Nguyễn Gia Huy & 49.01.104.059 & \textbf{Fullstack/DevOps:} 
+\begin{itemize}[leftmargin=*, nosep]
+    \item Quản lý tiến độ dự án, phân công nhiệm vụ, review code.
+    \item Thiết kế kiến trúc tổng thể, cơ sở dữ liệu (ERD).
+    \item Phát triển backend (xác thực JWT, quản lý người dùng, core API).
+    \item Cấu hình CI/CD.
+    \item  Xử lý logic thanh toán giả lập và ghi danh khóa học.
+    \item Hỗ trợ thành viên giải quyết lỗi kỹ thuật.
+\end{itemize} \\ \hline
+Nguyễn Đặng Đại Nam & 49.01.104.094 & \textbf{Frontend Developer:}
+\begin{itemize}[leftmargin=*, nosep]
+    \item Xây dựng toàn bộ giao diện người dùng.
+    \item Phát triển các component: Navbar, Dashboard học viên, trang chi tiết khóa học, trang học video.
+    \item Tích hợp API backend vào frontend.
+    \item Đảm bảo giao diện responsive trên các thiết bị khác nhau.
+    \item Thiết kế kiến trúc tổng thể, Review code.
+    \item Tham gia viết báo cáo tổng kết đồ án.
+    \item Hỗ trợ kiểm thử giao diện và báo cáo lỗi.
+\end{itemize} \\ \hline
+Dương Thành Nhân & 49.01.104.100 & \textbf{Tester / Documenter:}
+\begin{itemize}[leftmargin=*, nosep]
+    \item Lập kế hoạch kiểm thử.
+    \item Tích hợp chatbot AI
+    \item Thực hiện kiểm thử thủ công toàn bộ chức năng hệ thống.
+    \item Viết báo cáo lỗi (bug report), theo dõi quá trình fix lỗi.
+    \item Hỗ trợ xây dựng landing page và nội dung giới thiệu sản phẩm.
+    \item Tham gia viết báo cáo tổng kết đồ án.
+\end{itemize} \\ \hline
+Lê Viết Thành Thái & 49.01.104.132 & \textbf{Backend Developer:}
+\begin{itemize}[leftmargin=*, nosep]
+    \item Phát triển các API quản lý khóa học , bài giảng.
+    \item Xây dựng module quiz và chấm điểm tự động.
+    \item Hỗ trợ xử lý logic thanh toán giả lập và ghi danh khóa học.
+    \item Thiết kế schema Mongoose cho các collection liên quan.
+    \item Viết tài liệu API (Swagger/Postman collection).
+    \item Hỗ trợ kiểm thử API và tối ưu truy vấn database.
+\end{itemize} \\ \hline
+\end{tabular}
+\end{table}
+
+Các thành viên đều sử dụng GitHub để quản lý mã nguồn, tạo branch cho từng tính năng, thực hiện Pull Request và code review qua GitHub. Công cụ Trello được sử dụng để theo dõi tiến độ công việc, Google Meet cho các buổi họp nhóm hàng tuần.
+
+\section{Kết luận chương}
+Chương 1 trình bày bối cảnh của vấn đề, mục tiêu và phạm vi của hệ thống E-Learning Management System. Các yêu cầu chức năng và phi chức năng được xác định rõ ràng, công nghệ MERN Stack được lựa chọn phù hợp với mục tiêu. Quy trình thực hiện 7 giai đoạn và sự phân công nhiệm vụ trong nhóm được thiết lập, tạo tiền đề vững chắc cho các chương phân tích, thiết kế và cài đặt tiếp theo.

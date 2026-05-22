@@ -1,0 +1,486 @@
+================================================================================
+  CÔNG NGHỆ ĐƯỢC DÙNG TRONG TỪNG CHỨC NĂNG CHÍNH
+  E-LEARNING PLATFORM (MERN Stack)
+================================================================================
+
+MỤC LỤC:
+  1. Thanh toán (Payment) — MoMo Sandbox
+  2. Xác thực (Authentication) — JWT
+  3. Khóa học (Course Management)
+  4. Video học tập (Video Lessons)
+  5. Quiz & Bài nộp (Quiz System)
+  6. Chứng chỉ (Certificate System)
+  7. AI Assistant — Google Gemini
+  8. Upload PDF — Multer + pdf-parse
+  9. UI Components — Chakra UI
+  10. State Management — Redux
+  11. Phân trang (Pagination) — Frontend slice()
+  12. Database — MongoDB + Mongoose
+
+  ---
+  PHỤ LỤC: "views" trong Video Model có tác dụng gì?
+
+
+================================================================================
+1. THANH TOÁN (PAYMENT) — MOMO SANDBOX
+================================================================================
+
+📌 Công nghệ: MoMo Test (Sandbox) API
+
+📁 File liên quan:
+  - backend/routes/payment.route.js
+  - frontend/src/Pages/Payment/Payment.js
+
+🔧 Mô tả:
+  Hệ thống thanh toán tích hợp MoMo Test Environment (Sandbox) cho phép
+  giả lập quy trình thanh toán mà không cần tiền thật.
+
+⚙️ Cách hoạt động:
+  1. Frontend gửi yêu cầu POST /payment/momo/create { courseId, amount }
+  2. Backend tạo chữ ký HMAC-SHA256 với:
+     - accessKey: "F8BBA842ECF85"
+     - secretKey: "K951B6PE1waDMi640xX08PD3vg6EkVlz"
+     - Các tham số: amount, orderId, orderInfo, redirectUrl, ipnUrl...
+  3. Gửi request HTTPS đến MoMo Sandbox:
+     URL: https://test-payment.momo.vn/v2/gateway/api/create
+     Port: 443
+  4. MoMo trả về:
+     - payUrl: URL chuyển hướng đến trang thanh toán MoMo
+     - qrCodeUrl: URL QR code để quét thanh toán
+     - deeplink: Deep link mở app MoMo
+  5. Frontend redirect user đến payUrl hoặc hiển thị QR
+
+📌 Endpoint giả lập thành công:
+  POST /payment/momo/simulate { courseId, amount }
+  - Dùng để test nhanh: không gọi MoMo, enroll user trực tiếp
+  - Kiểm tra trùng: Nếu đã enroll → báo lỗi
+  - Nếu OK → $push courseId vào user.course
+
+⚠️ Lưu ý:
+  - Đây là MoMo Sandbox (test), không xử lý tiền thật
+  - redirectUrl và ipnUrl hiện trỏ đến webhook.site (dùng để debug)
+  - Khi deploy production, cần thay bằng:
+    + accessKey / secretKey thật từ MoMo Merchant
+    + redirectUrl thật (domain của app)
+    + ipnUrl (server endpoint nhận webhook từ MoMo)
+
+
+================================================================================
+2. XÁC THỰC (AUTHENTICATION) — JWT + BCRYPT
+================================================================================
+
+📌 Công nghệ:
+  - jsonwebtoken (JWT): Tạo và xác thực token
+  - bcrypt: Hash password
+  - localStorage: Lưu token phía client
+
+📁 File liên quan:
+  - backend/middlewares/users.middleware.js (auth middleware)
+  - backend/routes/users.routes.js (signup/login/logout)
+  - backend/blacklist.js (token blacklist in-memory)
+  - frontend/src/components/LogIn.jsx
+  - frontend/src/components/SignUp.jsx
+  - frontend/src/Redux/UserReducer/ (store state)
+
+⚙️ Quy trình:
+  Đăng ký:
+    1. User nhập name, email, password, age, city, job
+    2. Backend hash password bằng bcrypt (salt rounds = 5)
+    3. Lưu user vào MongoDB
+    4. Tạo JWT với payload { userId, user, role }
+    5. Trả về token + user info
+
+  Đăng nhập:
+    1. User nhập email + password
+    2. Backend tìm user trong DB
+    3. So sánh password với bcrypt.compare
+    4. Tạo JWT mới
+    5. Trả token và lưu vào Redux + localStorage
+
+  Xác thực request (middleware auth):
+    1. Đọc header "Authorization: Bearer <token>"
+    2. Kiểm tra token có trong blacklist không
+    3. Verify JWT với secret "SRM"
+    4. Gán userId, username, role vào req.body
+
+  Đăng xuất:
+    1. Thêm token vào blacklist (mảng in-memory)
+    2. Xóa localStorage
+    3. Reset Redux state
+
+🔐 JWT Secret:
+  - Dùng 2 loại secret: "SRM" (xác thực chính) và "ARIVU" (refresh token)
+  - Refresh token tại /regenerateToken
+
+
+================================================================================
+3. KHÓA HỌC (COURSE MANAGEMENT)
+================================================================================
+
+📌 Công nghệ:
+  - MongoDB + Mongoose (schema + CRUD)
+  - Redux AdminReducer / TeacherReducer (state management)
+  - Chakra UI Table (giao diện quản lý)
+
+📁 File liên quan:
+  - backend/models/courses.model.js (schema)
+  - backend/routes/courses.route.js (CRUD endpoints)
+  - frontend/src/components/Adminitems/Courses.jsx (admin view)
+  - frontend/src/components/TeacherComponents/TeacherCourses.jsx (teacher view)
+  - frontend/src/components/Adminitems/AddCourse.jsx
+  - frontend/src/components/TeacherComponents/AddCourse.jsx
+
+⚙️ Quy trình tạo khóa học:
+  1. Teacher tạo course → POST /courses/add
+     → status = "pending" (chờ admin duyệt)
+  2. Admin thấy course pending trong danh sách
+     → Approve (PATCH /courses/approve/:id) → status = "published"
+     → Reject (PATCH /courses/reject/:id) → status = "rejected"
+  3. Admin tạo course trực tiếp → status = "published" (không cần duyệt)
+  4. Course published xuất hiện ở LandingPage & User Dashboard
+
+
+================================================================================
+4. VIDEO HỌC TẬP (VIDEO LESSONS)
+================================================================================
+
+📌 Công nghệ:
+  - ReactPlayer: Phát video YouTube online
+  - Mongoose: Schema + CRUD
+
+📁 File liên quan:
+  - backend/models/video.model.js (schema)
+  - backend/routes/videos.route.js (CRUD)
+  - frontend/src/Pages/CourseLearnPage.jsx (trình phát)
+  - frontend/src/components/Adminitems/AddVideos.jsx (admin thêm video)
+  - frontend/src/components/TeacherComponents/AddTeacherVideos.jsx (teacher thêm video)
+
+⚙️ Cách hoạt động:
+  - Video lưu link YouTube (không upload file lên server)
+  - Khi học: gọi GET /videos/courseVideos/:courseId
+  - ReactPlayer render video từ link với controls + aspect ratio 16:9
+  - Teacher/Admin thêm video qua form: title, description, link, img
+
+
+================================================================================
+5. QUIZ & BÀI NỘP (QUIZ SYSTEM)
+================================================================================
+
+📌 Công nghệ:
+  - MongoDB: lưu quiz + submission
+  - JWT auth: kiểm tra quyền truy cập
+  - courseAccess.js: kiểm tra enrollment
+  - Chakra UI RadioGroup: giao diện câu hỏi trắc nghiệm
+
+📁 File liên quan:
+  - backend/models/quiz.model.js (schema)
+  - backend/models/submission.model.js (schema bài nộp)
+  - backend/routes/quiz.route.js (CRUD + submit)
+  - backend/helpers/courseAccess.js (quyền truy cập)
+  - frontend/src/Pages/CourseLearnPage.jsx (làm quiz)
+  - frontend/src/components/TeacherComponents/TeacherCreateQuiz.jsx (tạo quiz)
+
+⚙️ Quy trình:
+  Tạo quiz (Teacher):
+    1. Chọn video → thêm câu hỏi (prompt, choices, correctIndex)
+    2. POST /quizzes/ → upsert quiz cho video đó
+    3. validateQuestionsPayload kiểm tra: non-empty, >= 2 choices, correctIndex hợp lệ
+
+  Làm quiz (Student):
+    1. Chọn video → GET /quizzes/video/:videoId
+       → Quiz được trả về KHÔNG có correctIndex (bảo mật)
+    2. Trả lời → POST /quizzes/video/:videoId/submit { answers: [0, 1, 2, ...] }
+    3. Backend so sánh từng đáp án với correctIndex
+    4. Tính score (số câu đúng), percent (%), lưu submission
+    5. Trả kết quả về frontend
+
+  Kiểm tra quyền:
+    - canUserAccessCourseContent(): kiểm tra enrollment trước khi cho làm quiz
+    - Nếu chưa enroll → 403 Forbidden
+
+
+================================================================================
+6. CHỨNG CHỈ (CERTIFICATE SYSTEM)
+================================================================================
+
+📌 Công nghệ:
+  - MongoDB: lưu certificate
+  - html2canvas: export certificate thành PNG
+  - JWT auth + courseAccess
+
+📁 File liên quan:
+  - backend/models/certificate.model.js (schema)
+  - backend/routes/certificate.route.js (issue/list/check)
+  - frontend/src/Pages/CertificatesPage.jsx (hiển thị + download)
+  - frontend/src/Pages/CourseLearnPage.jsx (nút "Get My Certificate")
+
+⚙️ Điều kiện cấp chứng chỉ:
+  1. User phải ENROLL trong khóa học
+  2. User phải SUBMIT QUIZ cho TẤT CẢ video trong khóa học
+  3. Điểm trung bình (best score mỗi video) >= 80%
+
+⚙️ Quy trình:
+  Check eligibility:
+    GET /certificate/check/:courseId
+    → Trả về: hasCertificate, eligible, videosCompleted/totalVideos, averageScore
+
+  Issue:
+    POST /certificate/issue/:courseId
+    → Tạo certificateId: "CERT-" + timestamp(36) + random(4)
+    → Tạo certificateNumber: "EL" + timestamp(4) + random(4)
+    → Lưu vào DB → trả certificate
+
+  Download PNG:
+    1. frontend tạo div ẩn với HTML certificate template
+    2. html2canvas chụp div đó (scale 2x cho HD)
+    3. Tạo link download → click tự động
+    4. File name: certificate-[certificateNumber].png
+
+📌 Định dạng certificate HTML:
+  - Khung viền vàng (border 8px #DAA520)
+  - Icon 🎓
+  - "Certificate of Completion"
+  - Student name, course name, ngày cấp
+  - Certificate ID + Number ở cuối
+
+
+================================================================================
+7. AI ASSISTANT — GOOGLE GEMINI
+================================================================================
+
+📌 Công nghệ:
+  - @google/genai (Gemini 2.5 Flash): AI model
+  - pdf-parse: Trích xuất text từ PDF
+  - Multer: Upload file
+  - RAG (Retrieval-Augmented Generation): Chỉ trả lời dựa trên context
+  - react-markdown + remark-gfm: Render markdown trong chat
+
+📁 File liên quan:
+  - backend/helpers/aiAssistant.helper.js (logic chính)
+  - backend/routes/aiAssistant.route.js (endpoints)
+  - frontend/src/components/AIAssistantChat.jsx (UI chat)
+  - frontend/src/components/AdminUploadPDFContext.jsx (upload PDF)
+  - backend/data/course_*.txt (dữ liệu khóa học)
+
+⚙️ Kiến trúc RAG:
+  1. Upload: Teacher/Admin upload PDF
+     → Backend extract text bằng pdf-parse
+     → Lưu text vào backend/data/course_[courseId].txt
+
+  2. Hỏi đáp:
+     → Student gửi câu hỏi
+     → Backend load context từ file .txt
+     → Build system prompt: yêu cầu AI CHỈ trả lời trong context
+     → Gọi Gemini API
+     → Kiểm tra isAnswerWithinContext()
+     → Nếu ngoài context → thông báo "không nằm trong nội dung khóa học"
+
+📌 System Prompt:
+  - Yêu cầu AI trả lời bằng tiếng Việt
+  - Strict: chỉ dùng nội dung khóa học được cung cấp
+  - Nếu không chắc chắn → nói "không được đề cập trong khóa học"
+
+📌 Các format response Gemini được hỗ trợ:
+  1. response.text (SDK cũ)
+  2. response.candidates[0].content.parts[0].text (SDK v2)
+  3. response.response.candidates[0]... (nested)
+
+
+================================================================================
+8. UPLOAD PDF — MULTER + PDF-PARSE
+================================================================================
+
+📌 Công nghệ:
+  - Multer: Middleware upload file (lưu tạm vào backend/uploads/temp/)
+  - pdf-parse: Trích xuất text từ PDF
+
+📁 File liên quan:
+  - backend/routes/aiAssistant.route.js (endpoint upload-pdf)
+  - backend/helpers/aiAssistant.helper.js (extractTextFromPDF)
+  - frontend/src/components/AdminUploadPDFContext.jsx (UI upload)
+
+⚙️ Quy trình:
+  1. Admin/Teacher chọn file PDF (≤ 15MB)
+  2. Multer nhận file → lưu vào backend/uploads/temp/
+  3. Kiểm tra role (chỉ admin/teacher mới được upload)
+  4. pdf-parse đọc file buffer → extract text
+  5. Lưu text vào backend/data/course_[courseId].txt
+  6. Xóa file PDF tạm
+  7. Trả về thành công
+
+⚠️ Giới hạn:
+  - Chỉ nhận file PDF
+  - Max 15MB
+  - Chỉ admin và teacher mới được upload
+
+
+================================================================================
+9. UI COMPONENTS — CHAKRA UI
+================================================================================
+
+📌 Công nghệ: Chakra UI v2
+
+📦 Components chính sử dụng:
+  - Box, Flex, Grid: Layout
+  - Heading, Text, Badge: Typography
+  - Button, IconButton: Action
+  - Input, Select, RadioGroup, Radio: Form
+  - Table, Thead, Tbody, Tr, Th, Td: Bảng dữ liệu
+  - Image, Avatar: Hình ảnh
+  - Spinner: Loading
+  - Alert, AlertIcon, AlertTitle, AlertDescription: Thông báo
+  - Menu, MenuButton, MenuList, MenuItem: Dropdown
+  - Tabs, TabList, TabPanels, Tab, TabPanel: Tab UI
+  - AspectRatio: Tỉ lệ khung hình (video)
+  - VStack, HStack, Stack, Wrap: Sắp xếp
+  - useToast: Toast notification
+  - useBreakpointValue: Responsive
+  - Tooltip: Tooltip
+
+🔧 Icons: @chakra-ui/icons (ChevronLeftIcon, ChevronRightIcon, EditIcon, ...)
+  + react-icons (BiUserCircle, FaUserShield, FaGraduationCap, ...)
+
+
+================================================================================
+10. STATE MANAGEMENT — REDUX
+================================================================================
+
+📌 Công nghệ: Redux + react-redux + redux-thunk
+
+📁 File liên quan:
+  - frontend/src/Redux/Store.js (store chính)
+  - frontend/src/Redux/UserReducer/ (auth state)
+  - frontend/src/Redux/AdminReducer/ (admin state)
+  - frontend/src/Redux/TeacherReducer/ (teacher state)
+  - frontend/src/Redux/ProductReducer/ (chưa dùng)
+
+📌 Cấu trúc Store:
+  {
+    UserReducer: { email, name, role, token, isAuth, userId, age, job, place },
+    AdminReducer: { data, loading, error },
+    TeacherReducer: { data, loading, error },
+    ProductReducer: { ... }
+  }
+
+📌 Luồng dữ liệu:
+  - Login → dispatch actionLoginSuccess → lưu vào Redux + localStorage
+  - Logout → dispatch actionUserLogout → reset state + xóa localStorage
+  - Admin fetch courses → dispatch getProduct → lưu vào AdminReducer.data
+  - Component useSelector() để đọc state
+
+
+================================================================================
+11. PHÂN TRANG (PAGINATION) — FRONTEND SLICE()
+================================================================================
+
+📌 Công nghệ: JavaScript Array.slice() — xử lý thuần Frontend
+
+📁 File liên quan:
+  - frontend/src/components/UserComponents/AllCoursesGrid.jsx
+  - frontend/src/components/Adminitems/Courses.jsx (dùng backend pagination)
+
+⚙️ Cách hoạt động:
+  1. Fetch tất cả course: GET /courses/all?limit=100
+  2. Lưu vào state courses[]
+  3. Tính: startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+  4. currentCourses = courses.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  5. Render currentCourses trong Grid
+  6. Khi click page → setCurrentPage → re-render với slice() mới
+
+📌 getPageNumbers():
+  - Tạo mảng số trang + dấu "..." khi có nhiều trang
+  - Giới hạn hiển thị 7 nút page (maxVisible = 7)
+  - Thông minh: tự động điều chỉnh start/end dựa trên currentPage
+
+
+================================================================================
+12. DATABASE — MONGODB + MONGOOSE
+================================================================================
+
+📌 Công nghệ: MongoDB (NoSQL) + Mongoose ODM
+
+📁 Collections:
+  - users: Người dùng (user, teacher, admin)
+  - courses: Khóa học
+  - videos: Video bài giảng
+  - quizzes: Bài quiz
+  - quizsubmissions: Bài nộp quiz
+  - certificates: Chứng chỉ
+  - blacklist: Token đã logout
+
+📌 Mối quan hệ giữa các collection:
+  users.course ──→ courses._id  (nhiều-nhiều: user enrolled courses)
+  courses.videos ──→ videos._id (1 course → nhiều video)
+  videos.courseId ──→ courses._id
+  quizzes.videoId ──→ videos._id
+  quizzes.courseId ──→ courses._id
+  submissions.userId ──→ users._id
+  submissions.videoId ──→ videos._id
+  submissions.courseId ──→ courses._id
+  submissions.quizId ──→ quizzes._id
+  certificates.userId ──→ users._id
+  certificates.courseId ──→ courses._id
+
+📌 Index quan trọng:
+  - users.email: unique (đăng nhập)
+  - blacklist.token: unique (logout)
+  - certificates.certificateId: unique
+  - certificates.certificateNumber: unique
+
+
+================================================================================
+PHỤ LỤC: "views" TRONG VIDEO MODEL CÓ TÁC DỤNG GÌ?
+================================================================================
+
+📌 Phát hiện:
+  Trong backend/models/video.model.js có trường:
+    views: { type: Number, default: 0 }
+
+📌 Trả lời: HIỆN TẠI KHÔNG CÓ TÁC DỤNG GÌ.
+
+🔍 Lý do:
+  - Trường "views" được định nghĩa trong schema nhưng KHÔNG được sử dụng
+    ở bất kỳ đâu trong toàn bộ codebase:
+    + Không có API endpoint nào increment views
+    + Không có logic nào cập nhật views khi user xem video
+    + Không có giao diện nào hiển thị số views
+  - Đây là trường "dead code" — được định nghĩa nhưng chưa implement
+
+💡 Nếu muốn sử dụng "views" trong tương lai, có thể triển khai:
+  Ví dụ code đề xuất:
+
+  // backend/routes/videos.route.js — thêm endpoint
+  videoRoute.patch("/increment-views/:videoId", auth, async (req, res) => {
+    try {
+      const videoId = req.params.videoId;
+      const video = await VideoModel.findByIdAndUpdate(
+        videoId,
+        { $inc: { views: 1 } },   // Tăng views lên 1
+        { new: true }
+      );
+      res.status(200).json({ views: video.views });
+    } catch (err) {
+      res.status(400).json({ message: err.message });
+    }
+  });
+
+  // frontend — gọi khi user bắt đầu xem video
+  // Trong CourseLearnPage.jsx, thêm useEffect khi activeIndex thay đổi:
+  useEffect(() => {
+    if (activeVideoId && token) {
+      fetch(`/videos/increment-views/${activeVideoId}`, {
+        method: "PATCH",
+        headers: { authorization: `Bearer ${token}` }
+      });
+    }
+  }, [activeVideoId]);
+
+📌 Kết luận:
+  views chỉ là schema định nghĩa sẵn cho tương lai.
+  Hiện tại không ảnh hưởng gì đến hệ thống, không cần lo lắng.
+  Nếu muốn dùng, cần implement thêm endpoint + gọi từ frontend.
+
+
+================================================================================
+HẾT
+================================================================================

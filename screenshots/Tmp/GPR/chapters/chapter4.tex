@@ -1,0 +1,142 @@
+\chapter{Cài đặt hệ thống}
+
+\section{Kiến trúc tổng thể hệ thống}
+Hệ thống được xây dựng theo mô hình kiến trúc ba lớp (three-tier architecture) với sự phân tách rõ ràng giữa tầng giao diện (frontend), tầng xử lý logic (backend) và tầng dữ liệu (database). Ứng dụng chạy trên môi trường local (localhost) trong quá trình phát triển và kiểm thử, cơ sở dữ liệu được lưu trữ trên MongoDB Atlas để thuận tiện cho làm việc nhóm.
+
+Hình \ref{fig:architecture} mô tả luồng dữ liệu và tương tác giữa các thành phần:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=1.5cm,
+    block/.style={rectangle, draw=blue!70, rounded corners, fill=blue!5, minimum width=3cm, minimum height=1cm, align=center, font=\small, drop shadow},
+    arrow/.style={-Stealth, thick, color=blue!70}
+]
+\node[block] (client) {\textbf{Tầng Client (React)}\\Chạy tại localhost:3000};
+\node[block, right=2.5cm of client] (server) {\textbf{Tầng Server (Node.js/Express)}\\Chạy tại localhost:5001};
+\node[block, right=2.5cm of server] (database) {\textbf{Tầng Database (MongoDB Atlas)}};
+
+\draw[arrow] (client) -- node[above] {HTTP / JSON} (server);
+\draw[arrow] (server) -- node[above] {Mongoose ODM} (database);
+\draw[arrow, bend right] (database) -- node[below] {Trả dữ liệu} (server);
+\draw[arrow, bend right] (server) -- node[below] {Phản hồi JSON} (client);
+\end{tikzpicture}
+\caption{Kiến trúc tổng thể hệ thống (3 tầng)}
+\label{fig:architecture}
+\end{figure}
+
+\textbf{Giải thích luồng hoạt động:}
+\begin{enumerate}
+    \item Người dùng tương tác với giao diện React (chạy tại `http://localhost:3000`).
+    \item Frontend gửi HTTP request (GET, POST, PUT, DELETE) đến backend server qua API prefix `http://localhost:5001/api`.
+    \item Backend (Express.js) xử lý request, gọi đến các model, thực hiện truy vấn MongoDB Atlas thông qua Mongoose ODM.
+    \item Dữ liệu trả về được định dạng JSON và gửi lại cho frontend.
+    \item Frontend cập nhật giao diện dựa trên dữ liệu nhận được (sử dụng Redux để quản lý state).
+\end{enumerate}
+
+\subsection{Cấu trúc thư mục dự án}
+Dự án được tổ chức thành hai thư mục chính: \texttt{backend} và \texttt{frontend}. Hình \ref{fig:tree} là cây thư mục chụp từ Visual Studio Code.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{figs/folder_tree.png}
+\caption{Cấu trúc thư mục dự án (chụp từ VSCode)}
+\label{fig:tree}
+\end{figure}
+
+\subsection{Định tuyến tài nguyên}
+Trong chế độ phát triển, frontend chạy trên cổng 3000 và backend trên cổng 5001. Frontend gọi API thông qua địa chỉ \texttt{http://localhost:5001} được cấu hình trong file \texttt{.env} của frontend (biến \texttt{REACT\_APP\_API\_URL}). Backend sử dụng CORS để cho phép kết nối từ frontend. Không có cấu hình đặc biệt về tài nguyên tĩnh vì React sử dụng Webpack dev server.
+
+\section{Cài đặt môi trường phát triển}
+
+\subsection{Yêu cầu hệ thống}
+\begin{itemize}
+    \item Node.js (phiên bản 18.x trở lên)
+    \item npm hoặc yarn
+    \item MongoDB Atlas (tài khoản miễn phí) hoặc MongoDB Community (local)
+    \item Trình duyệt web (Chrome, Firefox, Edge)
+    \item Visual Studio Code (khuyến nghị)
+\end{itemize}
+
+\subsection{Cấu hình biến môi trường}
+\subsubsection{Backend (.env)}
+\begin{verbatim}
+PORT=5001
+MONGODB_URI=mongodb+srv://mysterhuy_db_user:nCdQwvdIpJpeEJjt@cluster0.d8wffxv.mongodb.net/elearning?retryWrites=true&w=majority&appName=Cluster0
+JWT_SECRET=0123456789
+\end{verbatim}
+
+\subsubsection{Frontend (.env)}
+\begin{verbatim}
+REACT_APP_API_URL=http://localhost:5001
+\end{verbatim}
+
+\subsection{Cài đặt các thư viện}
+Sử dụng lệnh \texttt{npm install} trong cả hai thư mục \texttt{backend} và \texttt{frontend} để cài đặt các dependencies. Các thư viện chính: express, mongoose, jsonwebtoken, bcrypt, multer, cors, dotenv, react, redux, axios, tailwindcss.
+
+\section{Cài đặt cơ sở dữ liệu}
+
+\subsection{Kết nối MongoDB Atlas}
+Hệ thống sử dụng MongoDB Atlas làm cơ sở dữ liệu đám mây. Chuỗi kết nối được lưu trong biến \texttt{MONGODB\_URI}. File \texttt{backend/db.js} chứa đoạn mã kết nối:
+
+\begin{verbatim}
+const mongoose = require('mongoose');
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('MongoDB connected');
+  } catch (err) {
+    console.error(err.message);
+    process.exit(1);
+  }
+};
+module.exports = connectDB;
+\end{verbatim}
+
+\subsection{Tạo các collection và index}
+Sau khi kết nối, các model được định nghĩa sẽ tự động tạo collection tương ứng (dạng số nhiều, chữ thường). Một số index quan trọng được tạo để tối ưu truy vấn:
+\begin{itemize}
+    \item \texttt{users.email} → unique index
+    \item \texttt{courses.category\_id}, \texttt{courses.instructor\_id}
+    \item \texttt{enrollments.user\_id + course\_id} → compound unique index
+    \item \texttt{lessons.course\_id + order} → unique để đảm bảo thứ tự
+\end{itemize}
+
+\subsection{Dữ liệu thực nghiệm}
+Do đồ án tập trung vào xây dựng hệ thống, nhóm chỉ tạo dữ liệu mẫu để minh họa và kiểm thử. Bảng \ref{tab:sample_users} trình bày một số bản ghi trong collection \texttt{users}.
+
+\begin{table}[H]
+\centering
+\caption{Dữ liệu mẫu collection users}
+\label{tab:sample_users}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{full\_name} & \textbf{email} & \textbf{role} & \textbf{created\_at} \\ \hline
+Admin System & admin@elearning.com & admin & 2026-05-10 \\ \hline
+Nguyễn Giáo Viên & teacher@elearning.com & teacher & 2026-05-10 \\ \hline
+Học Viên 1 & student1@example.com & student & 2026-05-12 \\ \hline
+\end{tabular}
+\end{table}
+
+Tương tự, collection \texttt{courses} có các khóa học mẫu: "Lập trình Node.js", "React cơ bản", "MongoDB cho người mới". Dữ liệu được nhập thủ công qua MongoDB Compass hoặc qua API tạo khóa học (chỉ admin/teacher).
+
+\section{Cài đặt các module xử lý chính}
+
+\subsection{Xác thực và phân quyền}
+Module xác thực sử dụng JWT. Khi đăng nhập thành công, server trả về token chứa \texttt{userId} và \texttt{role}. Token được lưu trong localStorage và gửi kèm header \texttt{Authorization} cho các request cần bảo vệ. Middleware \texttt{authMiddleware} kiểm tra token và gắn thông tin user vào \texttt{req.user}. Middleware \texttt{checkRole} (admin, teacher) được dùng để phân quyền.
+
+\subsection{Quản lý khóa học và bài giảng}
+Các API CRUD cho khóa học và bài giảng (video) được xây dựng trong \texttt{courses.route.js} và \texttt{videos.route.js}. Dữ liệu bài giảng được lưu trực tiếp vào MongoDB (trường \texttt{link} lưu đường dẫn video, hiện tại video được đặt trong thư mục \texttt{frontend/src/asset/} hoặc link YouTube). Do chưa tích hợp Cloudinary, video được nhúng qua iframe hoặc thẻ video với đường dẫn local.
+
+\subsection{Quiz và chấm điểm}
+Module quiz cho phép giáo viên tạo bộ câu hỏi (dạng JSON lưu trong collection \texttt{quizzes}) và học viên làm bài. Sau khi nộp, hệ thống tự động tính điểm dựa trên so sánh đáp án. Kết quả được lưu vào collection \texttt{quizsubmissions}. Công thức tính điểm:
+
+\[
+\text{score} = \frac{\text{số câu đúng}}{\text{tổng số câu}} \times \text{totalPoints}
+\]
+
+\subsection{Xử lý ghi danh và thanh toán}
+Học viên có thể ghi danh khóa học thông qua endpoint \texttt{POST /api/courses/:id/enroll}. Do chưa tích hợp cổng thanh toán thực, nhóm giả lập quy trình thanh toán bằng cách cho phép học viên "mua" khóa học với giá 0đ hoặc tạo đơn hàng demo. Sau khi ghi danh, bản ghi được thêm vào collection \texttt{enrollments}.
+
+\section{Kết luận chương}
+Chương 4 trình bày chi tiết kiến trúc hệ thống, cấu trúc thư mục, cách cài đặt môi trường phát triển, cơ sở dữ liệu, các module xử lý chính (xác thực, khóa học, quiz, ghi danh). Những nội dung này minh chứng cho việc nhóm đã xây dựng thành công ứng dụng chạy trên môi trường local, sẵn sàng để kiểm thử và vận hành.

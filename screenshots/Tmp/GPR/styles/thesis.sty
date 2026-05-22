@@ -1,0 +1,140 @@
+\ProvidesPackage{styles/thesis}
+\RequirePackage{graphicx}
+\RequirePackage{vietnam}
+\RequirePackage{geometry}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{indentfirst}
+\AtBeginDocument{\fontsize{13}{15}\selectfont}
+% Paper size A4 (210 × 297 mm)
+\def\thesislayout{	
+	\geometry{
+		a4paper,
+		left=35mm,
+		right=25mm,
+		top=30mm,
+		bottom=30mm
+	}
+}
+
+\newcommand{\@tname}{[TÊN ĐỀ TÀI]}
+\newcommand{\ctname}[1]{\renewcommand{\@tname}{#1}}
+
+\newcommand{\@rname}{ĐỒ ÁN MÔN HỌC}
+\newcommand{\crname}[1]{\renewcommand{\@rname}{#1}}
+
+% Danh sách thành viên nhóm (dùng trong bìa)
+\newcommand{\@groupmembers}{}
+\newcommand{\cgroupmembers}[1]{\renewcommand{\@groupmembers}{#1}}
+
+% Design cover page
+\def\coverpage{
+\pagestyle{empty}
+\begin{minipage}[b][25cm][t]{14cm}
+
+\begin{tikzpicture}[remember picture, overlay]
+\draw [line width=1pt]
+    ($ (current page.north west) + (3.5cm,-3.0cm) $)
+    rectangle
+    ($ (current page.south east) + (-2.5cm,3.0cm) $);
+\end{tikzpicture}
+
+\begin{center}
+{\fontsize{16}{1}\selectfont TRƯỜNG ĐẠI HỌC SƯ PHẠM TP. HỒ CHÍ MINH}\\
+{\fontsize{16}{1}\selectfont \textbf{KHOA CÔNG NGHỆ THÔNG TIN}} \\
+\textbf{----------------------------------------}\\[2cm]
+\includegraphics[scale=0.4]{assets/LOGO-HCMUE.png}\\[2cm]
+    {\fontsize{20}{1}\selectfont \textbf{\@rname }}\\[2cm]
+    {\fontsize{20}{1}\selectfont \textbf{{\centering \@tname}} }\\[3.2cm]
+    
+\end{center}
+
+% sinh viên căn phải
+\begin{flushright}
+    {\fontsize{14}{1}\selectfont \textbf{Nhóm sinh viên thực hiện:}}\\[0.3cm]
+    \@groupmembers
+\end{flushright}
+
+\vspace{2cm}
+\begin{center}
+ {\fontsize{16}{1}\selectfont \textbf{Thành phố Hồ Chí Minh - Năm 2026} }\\
+\end{center}
+\end{minipage}
+}
+
+% Trang phụ bìa
+\def\subcoverpage{
+    \newpage
+    \begin{minipage}[b][25cm][t]{14cm}
+\begin{tikzpicture}[remember picture, overlay]
+\draw [line width=1pt]
+    ($ (current page.north west) + (3.5cm,-3.0cm) $)
+    rectangle
+    ($ (current page.south east) + (-2.5cm,3.0cm) $);
+\end{tikzpicture}
+\begin{center}
+{\fontsize{16}{1}\selectfont TRƯỜNG ĐẠI HỌC SƯ PHẠM TP. HỒ CHÍ MINH}\\
+{\fontsize{16}{1}\selectfont \textbf{KHOA CÔNG NGHỆ THÔNG TIN}} \\
+\textbf{-----------------------------------------}\\[2cm]
+    {\fontsize{20}{1}\selectfont \textbf{\@rname }}\\[2cm]
+    {\fontsize{20}{1}\selectfont \textbf{{\centering \@tname}} }\\[2cm]
+\end{center}
+\hspace{0.5cm} \fontsize{16}{1}\selectfont{\textbf{GVHD:}}\\[0.23cm]
+\hspace{0.5cm} \fontsize{16}{1}\selectfont{\textbf{1. TS. Trần Sơn Hải}}\\[0.23cm]
+\hspace{0.5cm} \fontsize{16}{1}\selectfont{\textbf{2. CN. Lê Thanh Thoại}}\\[1.5cm]
+\begin{center}
+{\fontsize{16}{1}\selectfont\textbf{HỌC PHẦN: THỰC HÀNH NGHỀ NGHIỆP}}\\[1.5cm]
+\end{center}
+\begin{flushright}
+    \textbf{\fontsize{16}{1}\selectfont NHÓM SINH VIÊN:}\\[0.3cm]
+    \begin{tabbing}
+    1. \= 1. Nguyễn Văn A - 48.01.104.xxx \hspace{-2cm} \= \kill
+    \> \> \textbf{1. Nguyễn Văn A - 48.01.104.xxx} \\[0.1cm]
+    \> \> \textbf{2. Nguyễn Văn B - 48.01.104.xxx} \\[0.15cm]
+    \> \> \textbf{3. Nguyễn Văn C- 48.01.104.xxx} \\[0.15cm]
+    \> \> \textbf{4. Nguyễn Văn D - 48.01.104.xxx} \\[0.15cm]
+    \> \> \textbf{5. Nguyễn Văn E - 48.01.104.xxx} \\[0.15cm]
+    \end{tabbing}
+\end{flushright}
+\vspace{1.5cm}
+\begin{center}
+ {\fontsize{16}{1}\selectfont \textbf{Thành phố Hồ Chí Minh - Năm 2026} }\\
+\end{center}
+\end{minipage}
+    \newpage
+}
+
+\def\makeprintversion{}
+
+\makeatletter
+\newenvironment{abstract}{
+  \chapter*{Tóm tắt}
+  \addcontentsline{toc}{chapter}{Tóm tắt}
+  \small
+  \quotation
+}{
+  \par
+}
+\makeatother
+
+\makeatletter
+\newenvironment{acknowledgments}{
+  \chapter*{Lời cảm ơn}
+  \addcontentsline{toc}{chapter}{Lời cảm ơn}
+  \small
+  \quotation
+}{
+  \par
+}
+\makeatother
+
+\makeatletter
+\newenvironment{declaration}{
+  \chapter*{Lời cam đoan}
+  \addcontentsline{toc}{chapter}{Lời cam đoan}
+  \small
+  \quotation
+}{
+  \par
+}
+\makeatother

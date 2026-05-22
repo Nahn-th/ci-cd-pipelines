@@ -1,0 +1,299 @@
+KHÓA HỌC: JAVASCRIPT CƠ BẢN - NỘI DUNG HỌC TẬP
+
+====================================================================
+CHƯƠNG 1: GIỚI THIỆU JAVASCRIPT
+====================================================================
+
+1.1 JavaScript là gì?
+- JavaScript là một ngôn ngữ lập trình được chạy trên trình duyệt web
+- Được sáng lập bởi Brendan Eich vào năm 1995
+- Tên gốc là Mocha, sau đó là LiveScript, cuối cùng là JavaScript
+- JavaScript KHÔNG liên quan gì đến Java - đó chỉ là tên marketing
+
+1.2 Tại sao học JavaScript?
+- Là ngôn ngữ lập trình phổ biến nhất
+- Có thể chạy trên mọi trình duyệt
+- Được sử dụng cho Frontend, Backend (Node.js), Mobile (React Native)
+- Có cộng đồng lớn và nhiều thư viện hỗ trợ
+
+1.3 Cách chạy JavaScript
+- Trên trình duyệt: Mở Developer Tools (F12) > Console
+- Trên Node.js: Cài đặt Node.js và chạy file .js
+- Trên các online editor: CodePen, JSFiddle, Replit
+
+====================================================================
+CHƯƠNG 2: CÁC KIỂU DỮ LIỆU CƠ BẢN
+====================================================================
+
+2.1 Number (Số)
+- Kiểu dữ liệu đại diện cho cả số nguyên và số thực
+- Ví dụ: 10, -5, 3.14, -0.5
+- Các phép toán: +, -, *, /, %, **
+- Giá trị đặc biệt: Infinity, -Infinity, NaN
+
+2.2 String (Chuỗi)
+- Chuỗi ký tự được bao bọc bởi dấu ngoặc kép "", ngoặc đơn '', hoặc backtick ``
+- Ví dụ: "Hello", 'World', `Hello ${name}`
+- Các phương thức: length, charAt(), substring(), toUpperCase()
+- Template string: `Xin chào ${name}` (sử dụng backtick)
+
+2.3 Boolean (Kiểu Luận Lý)
+- Chỉ có hai giá trị: true hoặc false
+- Dùng trong điều kiện if, while, for
+- Các toán tử so sánh: >, <, >=, <=, ==, ===, !=, !==
+- Các toán tử logic: && (và), || (hoặc), ! (phủ định)
+
+2.4 Undefined
+- Là giá trị mặc định khi biến được khai báo nhưng chưa được gán
+- Ví dụ: let x; console.log(x); // undefined
+
+2.5 Null
+- Là giá trị được gán để biểu thị "không có giá trị"
+- Ví dụ: let user = null; // chưa có dữ liệu
+
+2.6 Object (Đối Tượng)
+- Tập hợp các cặp key-value
+- Ví dụ: { name: "John", age: 30, city: "Hà Nội" }
+- Truy cập: person.name hoặc person["name"]
+
+2.7 Array (Mảng)
+- Danh sách các phần tử được sắp xếp theo thứ tự
+- Ví dụ: [1, 2, 3, 4, 5] hoặc ["a", "b", "c"]
+- Truy cập: array[0] (index bắt đầu từ 0)
+- Các phương thức: push(), pop(), shift(), unshift(), length
+
+====================================================================
+CHƯƠNG 3: BIẾN VÀ HẰNG SỐ
+====================================================================
+
+3.1 Khai báo biến với var
+- var là cách khai báo cũ, KHÔNG nên sử dụng
+- Tầm vực (scope) khó hiểu
+- Ví dụ: var name = "John";
+
+3.2 Khai báo biến với let
+- Được giới thiệu trong ES6 (2015)
+- Có tầm vực (scope) trong block {}
+- Ví dụ: let age = 25;
+- Có thể khai báo lại: let x = 1; let x = 2; (trong block khác)
+
+3.3 Khai báo hằng số với const
+- Được giới thiệu trong ES6
+- Hằng số không thể thay đổi giá trị
+- Ví dụ: const PI = 3.14159;
+- LƯU Ý: Nếu const là object/array, có thể thay đổi nội dung nhưng không thể gán lại
+
+3.4 Sự khác biệt giữa let và const
+- Dùng const mặc định, chỉ dùng let khi cần thay đổi giá trị
+- const được khuyến khích hơn vì an toàn hơn
+
+====================================================================
+CHƯƠNG 4: HÀM (FUNCTIONS)
+====================================================================
+
+4.1 Định nghĩa hàm
+- Cách 1: function declaration
+  function greet(name) {
+    console.log("Hello " + name);
+  }
+
+- Cách 2: function expression
+  const greet = function(name) {
+    console.log("Hello " + name);
+  };
+
+4.2 Arrow Function (ES6)
+- Cách viết ngắn gọn hơn
+- Ví dụ: const sum = (a, b) => a + b;
+- Không có dòng lệnh: const sum = (a, b) => a + b;
+- Có dòng lệnh: const sum = (a, b) => { return a + b; };
+
+4.3 Tham số mặc định
+- Có thể đặt giá trị mặc định
+- Ví dụ: function greet(name = "Guest") { ... }
+
+4.4 Giá trị trả về
+- Dùng return để trả về giá trị
+- Nếu không có return, hàm trả về undefined
+
+4.5 Gọi hàm
+- Dùng tên hàm kèm theo dấu ()
+- Ví dụ: greet("John");
+
+====================================================================
+CHƯƠNG 5: VÒNG LẶP
+====================================================================
+
+5.1 Vòng lặp for
+- Cú pháp: for (let i = 0; i < 5; i++) { ... }
+- Chạy lặp lại với số lần xác định
+
+5.2 Vòng lặp while
+- Cú pháp: while (condition) { ... }
+- Tiếp tục chạy khi condition là true
+
+5.3 Vòng lặp do-while
+- Cú pháp: do { ... } while (condition);
+- Chạy ít nhất một lần, sau đó kiểm tra điều kiện
+
+5.4 forEach (cho Array)
+- Dùng để duyệt qua từng phần tử của mảng
+- Ví dụ: array.forEach(item => console.log(item));
+
+5.5 map, filter, reduce
+- map: Biến đổi mỗi phần tử
+  const doubled = [1,2,3].map(x => x * 2); // [2,4,6]
+- filter: Lọc phần tử thỏa điều kiện
+  const evens = [1,2,3,4].filter(x => x % 2 === 0); // [2,4]
+- reduce: Gộp mảng thành một giá trị
+  const sum = [1,2,3].reduce((acc, x) => acc + x, 0); // 6
+
+====================================================================
+CHƯƠNG 6: DOM (DOCUMENT OBJECT MODEL)
+====================================================================
+
+6.1 DOM là gì?
+- DOM là cây cấu trúc của trang HTML
+- Mỗi phần tử HTML là một node trong cây
+- JavaScript có thể thao tác với DOM
+
+6.2 Chọn phần tử
+- document.querySelector('selector'): Chọn phần tử đầu tiên
+  const element = document.querySelector('.btn'); // class
+  const element = document.querySelector('#header'); // id
+  const element = document.querySelector('h1'); // tag
+
+- document.querySelectorAll('selector'): Chọn tất cả
+  const elements = document.querySelectorAll('p');
+
+- document.getElementById('id'): Chọn theo ID
+  const element = document.getElementById('header');
+
+6.3 Thay đổi nội dung
+- element.textContent = "Nội dung mới"; // thay đổi text
+- element.innerHTML = "<strong>Bold</strong>"; // thay đổi HTML
+
+6.4 Thay đổi thuộc tính
+- element.setAttribute('class', 'new-class');
+- element.style.color = 'red';
+- element.className = 'new-class';
+
+6.5 Lắng nghe sự kiện
+- element.addEventListener('click', () => { ... });
+- Các sự kiện: click, change, input, submit, load, scroll
+
+6.6 Sự kiện phổ biến
+- click: Khi người dùng click chuột
+- change: Khi giá trị input thay đổi
+- submit: Khi form được submit
+- load: Khi trang hoàn tất tải
+- keydown: Khi phím được nhấn
+
+====================================================================
+CHƯƠNG 7: ASYNC/AWAIT VÀ PROMISE
+====================================================================
+
+7.1 Promise là gì?
+- Promise là đối tượng đại diện cho một tác vụ bất đồng bộ
+- Ba trạng thái: pending (chờ), fulfilled (thành công), rejected (thất bại)
+
+7.2 Tạo Promise
+- const promise = new Promise((resolve, reject) => {
+    if (success) resolve(data);
+    else reject(error);
+  });
+
+7.3 Sử dụng Promise
+- promise.then(data => console.log(data))
+         .catch(error => console.log(error));
+
+7.4 Async Function
+- Hàm async luôn trả về Promise
+- Ví dụ: async function getData() { ... }
+
+7.5 Await
+- Chỉ dùng trong async function
+- Chờ Promise hoàn thành
+- Ví dụ: const data = await fetch('/api/data');
+
+7.6 Fetch API
+- Dùng để gửi HTTP request
+- Ví dụ:
+  const response = await fetch('/api/users');
+  const data = await response.json();
+
+====================================================================
+CHƯƠNG 8: OBJECT-ORIENTED PROGRAMMING (OOP)
+====================================================================
+
+8.1 Constructor Function
+- function Person(name, age) {
+    this.name = name;
+    this.age = age;
+  }
+  const person = new Person("John", 30);
+
+8.2 Class (ES6)
+- class Person {
+    constructor(name, age) {
+      this.name = name;
+      this.age = age;
+    }
+    greet() {
+      console.log("Hello");
+    }
+  }
+
+8.3 Inheritance (Kế thừa)
+- class Student extends Person {
+    constructor(name, age, studentId) {
+      super(name, age);
+      this.studentId = studentId;
+    }
+  }
+
+8.4 Các thuộc tính đặc biệt
+- this: Đề cập đến đối tượng hiện tại
+- static: Phương thức hoặc thuộc tính của class, không phải của instance
+
+====================================================================
+CHƯƠNG 9: ERROR HANDLING (XỬ LÝ LỖI)
+====================================================================
+
+9.1 Try-Catch
+- try {
+    // Code có thể gây lỗi
+  } catch (error) {
+    console.log(error.message);
+  }
+
+9.2 Finally
+- try { ... }
+  catch (error) { ... }
+  finally { ... } // Chạy dù có lỗi hay không
+
+9.3 Throw Error
+- throw new Error("Lỗi tùy chỉnh");
+
+====================================================================
+CHƯƠNG 10: MODULE (IMPORT/EXPORT)
+====================================================================
+
+10.1 Export
+- export const add = (a, b) => a + b;
+- export default MyComponent;
+
+10.2 Import
+- import { add } from './math.js';
+- import MyComponent from './component.js';
+
+====================================================================
+ĐỂ ĐẠT KỸ NĂNG TỐTẤT, HÃY:
+
+1. Viết code mỗi ngày
+2. Đọc code của người khác
+3. Tham gia các dự án thực
+4. Học cách debug
+5. Hiểu các concept, đừng chỉ học cú pháp
+
+====================================================================

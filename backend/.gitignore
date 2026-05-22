@@ -1,0 +1,4 @@
+.env
+node_modules/
+Docs/DEPLOYMENT_GUIDE.md 
+Docs/File_Explanation.txt

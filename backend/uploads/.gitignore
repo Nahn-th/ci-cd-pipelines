@@ -1,0 +1,7 @@
+# Uploads directory
+/uploads/*
+!/uploads/.gitkeep
+
+# Temp files
+*.tmp
+*.log

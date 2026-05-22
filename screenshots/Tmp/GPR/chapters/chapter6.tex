@@ -1,0 +1,60 @@
+\chapter{Kết luận và hướng phát triển}
+
+\section{Tổng kết các kết quả đạt được}
+Sau quá trình nghiên cứu, phân tích, thiết kế và cài đặt, nhóm đã hoàn thành hệ thống quản lý học tập trực tuyến (E-Learning Management System) với các kết quả cụ thể:
+
+\begin{enumerate}
+    \item \textbf{Về mặt chức năng:} Hệ thống đáp ứng đầy đủ các yêu cầu nghiệp vụ cốt lõi:
+    \begin{itemize}
+        \item Phân quyền người dùng với ba vai trò: Admin, Teacher, Student.
+        \item Quản lý khóa học (thêm, sửa, xóa, xem danh sách và chi tiết).
+        \item Quản lý bài giảng video và tài liệu học tập.
+        \item Hệ thống quiz trắc nghiệm, tự động chấm điểm.
+        \item Quản lý người dùng (thêm, sửa, xóa, phân quyền) dành cho Admin.
+        \item Ghi danh khóa học và theo dõi tiến độ học tập.
+    \end{itemize}
+    
+    \item \textbf{Về mặt kỹ thuật:} Ứng dụng được xây dựng trên nền tảng MERN Stack, tuân thủ kiến trúc RESTful API. Hệ thống có khả năng xác thực và phân quyền an toàn thông qua JWT, mã hóa mật khẩu bằng bcrypt. Giao diện được thiết kế responsive, thân thiện với người dùng.
+    
+    \item \textbf{Về mặt kiểm thử:} Đã thực hiện 38 ca kiểm thử (unit test và chức năng) trên các module quan trọng, đạt tỷ lệ thành công 100\%. Hệ thống hoạt động ổn định trên môi trường local và kết nối thành công với MongoDB Atlas.
+    
+    \item \textbf{Về mặt học thuật:} Nhóm đã rèn luyện được quy trình làm việc nhóm chuyên nghiệp (Git, Trello, họp trực tuyến), kỹ năng viết báo cáo LaTeX, và khả năng đọc hiểu tài liệu tiếng Anh cũng như tự nghiên cứu công nghệ mới.
+\end{enumerate}
+
+\section{Hạn chế của hệ thống}
+Mặc dù đạt được những kết quả nhất định, hệ thống vẫn còn một số hạn chế cần được khắc phục:
+\begin{itemize}
+    \item \textbf{Về tính năng:} Chưa tích hợp chat real-time (hỗ trợ trao đổi giữa học viên và giảng viên), chưa có chức năng thông báo đẩy (push notification), chưa hỗ trợ thanh toán trực tuyến thực tế (chỉ mô phỏng).
+    \item \textbf{Về hiệu năng:} Hệ thống chỉ mới được kiểm thử trên môi trường local với dữ liệu giới hạn, chưa được tối ưu cho số lượng lớn người dùng đồng thời.
+    \item \textbf{Về bảo mật:} Mặc dù đã có xác thực JWT và mã hóa mật khẩu, hệ thống chưa được kiểm tra kỹ lưỡng các lỗ hổng như XSS, CSRF.
+    \item \textbf{Về giao diện:} Một số giao diện trên thiết bị di động nhỏ (dưới 360px) chưa được tối ưu hoàn toàn.
+\end{itemize}
+
+\section{Hướng phát triển trong tương lai}
+Dựa trên những hạn chế đã nêu, nhóm đề xuất các hướng phát triển tiếp theo để hoàn thiện hệ thống:
+
+\begin{enumerate}
+    \item \textbf{Tích hợp real-time:} Sử dụng Socket.IO để xây dựng tính năng chat trực tiếp giữa học viên và giảng viên, cũng như thông báo ngay khi có bài tập mới hoặc sự kiện quan trọng.
+    
+    \item \textbf{Thanh toán trực tuyến:} Kết nối cổng thanh toán cho phép thanh toán thực tế như VNPay hoặc PayPal để cho phép học viên mua khóa học trực tuyến một cách an toàn.
+    
+    \item \textbf{Phát triển ứng dụng mobile:} Dùng React Native hoặc Flutter để xây dựng ứng dụng di động, giúp người dùng học tập mọi lúc, mọi nơi.
+    
+    \item \textbf{Tối ưu hiệu năng:} Áp dụng caching (Redis), phân trang nâng cao, lazy loading images và code splitting để giảm tải thời gian tải trang.
+    
+    \item \textbf{Tích hợp AI:} Xây dựng hệ thống gợi ý khóa học dựa trên lịch sử học tập và sở thích của người dùng.
+    
+    \item \textbf{Mở rộng tính năng:} Bổ sung module bài tập tự luận (giảng viên chấm thủ công), khả năng tạo bài thi có giám sát (proctoring).
+\end{enumerate}
+
+\section{Bài học kinh nghiệm}
+Qua quá trình thực hiện đồ án, nhóm rút ra được một số bài học quý giá:
+\begin{itemize}
+    \item \textbf{Tầm quan trọng của phân tích thiết kế ban đầu:} Việc dành thời gian xây dựng ERD, use case và đặc tả chi tiết giúp giảm thiểu rủi ro phải sửa đổi cấu trúc trong giai đoạn coding.
+    \item \textbf{Làm việc nhóm có tổ chức:} Sử dụng Git flow (branch, pull request, code review) và Trello giúp theo dõi tiến độ, tránh xung đột mã nguồn.
+    \item \textbf{Kiểm thử liên tục:} Cần thực hiện kiểm thử ngay sau khi hoàn thành từng module thay vì đợi đến cuối dự án.
+    \item \textbf{Tự học và thích ứng nhanh:} Trong quá trình phát triển, nhóm đã phải tự học nhiều công nghệ mới (LaTeX, Redux, Mongoose). Khả năng đọc tài liệu tiếng Anh và tìm kiếm giải pháp trên Stack Overflow là rất quan trọng.
+\end{itemize}
+
+\section{Kết luận chung}
+Đề tài "Xây dựng hệ thống quản lý học tập trực tuyến (E-Learning Management System)" đã đạt được mục tiêu đề ra. Sản phẩm là một ứng dụng web hoạt động ổn định, đáp ứng các yêu cầu chức năng của một LMS dành cho trung tâm và lớp học quy mô vừa và nhỏ. Mặc dù còn một số hạn chế, hệ thống là nền tảng tốt để phát triển thêm trong tương lai. Đây cũng là bước đệm quan trọng để các thành viên trong nhóm tích lũy kinh nghiệm, hướng tới các vị trí thực tập và việc làm trong lĩnh vực phát triển phần mềm.

@@ -1,0 +1,155 @@
+\chapter{Kiểm thử và đánh giá}
+
+\section{Giới thiệu}
+Sau khi hoàn thành cài đặt, hệ thống cần được kiểm thử để đảm bảo các chức năng hoạt động đúng yêu cầu, không có lỗi nghiêm trọng. Chương này trình bày kế hoạch kiểm thử, các ca kiểm thử (test cases) đã thực hiện cho từng chức năng chính, cùng với kết quả và đánh giá tổng quan.
+
+\section{Kế hoạch kiểm thử}
+Nhóm thực hiện kiểm thử theo các loại sau:
+\begin{itemize}
+    \item \textbf{Kiểm thử đơn vị (Unit Testing):} Kiểm tra từng thành phần nhỏ (hàm, component, API endpoint) hoạt động độc lập.
+    \item \textbf{Kiểm thử tích hợp (Integration Testing):} Kiểm tra sự tương tác giữa frontend và backend thông qua API.
+    \item \textbf{Kiểm thử chức năng (Functional Testing):} Dựa trên các use case, kiểm tra toàn bộ quy trình nghiệp vụ.
+\end{itemize}
+Do khuôn khổ đồ án, nhóm tập trung thực hiện kiểm thử đơn vị và chức năng cho các module quan trọng: đăng ký/đăng nhập, quản lý khóa học, quản lý người dùng.
+
+\section{Các ca kiểm thử (Test Cases)}
+Dưới đây là các bảng kiểm thử chi tiết cho từng chức năng. Mỗi test case bao gồm: mã số, mô tả, kết quả mong đợi, kết quả thực tế và kết luận (Pass/Fail).
+
+\subsection{Kiểm thử chức năng Đăng ký / Đăng nhập}
+
+\subsubsection{Frontend}
+\begin{table}[H]
+\centering
+\caption{Kiểm thử frontend – Đăng ký/Đăng nhập}
+\label{tab:fe_sign}
+\begin{tabular}{|p{1.8cm}|p{4cm}|p{4cm}|p{2.2cm}|p{1.5cm}|}
+\hline
+\textbf{Mã TC} & \textbf{Mô tả} & \textbf{Kết quả mong đợi} & \textbf{Kết quả thực tế} & \textbf{Kết quả} \\ \hline
+FE-SU-01 & Render form đăng ký không lỗi & Form hiển thị thành công & Form hiển thị đúng & Pass \\ \hline
+FE-SU-02 & Kiểm tra các trường nhập liệu & Các trường (Họ tên, Email, Mật khẩu, Xác nhận) hiển thị đầy đủ & Hiển thị đầy đủ & Pass \\ \hline
+FE-SU-03 & Các trường rỗng ban đầu & Tất cả trường đều trống & Đúng như mong đợi & Pass \\ \hline
+FE-SU-04 & Kiểm tra nhập liệu (gõ, focus, blur) & Các trường phản hồi đúng thao tác & Phản hồi đúng & Pass \\ \hline
+FE-SU-05 & Hiển thị/ẩn mật khẩu & Nút hiển thị/ẩn hoạt động đúng & Hoạt động đúng & Pass \\ \hline
+FE-SU-06 & Checkbox nhận thông tin khuyến mãi & Checkbox có thể bật/tắt & Bật/tắt đúng & Pass \\ \hline
+FE-SU-07 & Gửi form với đầy đủ thông tin & Form gửi thành công & Gửi thành công & Pass \\ \hline
+FE-SU-08 & Gửi form khi mật khẩu xác nhận không khớp & Hiển thị lỗi "Mật khẩu không khớp" & Hiển thị lỗi đúng & Pass \\ \hline
+FE-SU-09 & Gửi form với mật khẩu dưới 8 ký tự & Hiển thị lỗi "Mật khẩu quá ngắn" & Hiển thị lỗi đúng & Pass \\ \hline
+FE-SU-10 & Chuyển hướng sang trang đăng nhập sau khi đăng ký thành công & Chuyển đến trang login & Chuyển hướng đúng & Pass \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Backend}
+\begin{table}[H]
+\centering
+\caption{Kiểm thử backend – Xác thực (JWT)}
+\label{tab:be_sign}
+\begin{tabular}{|p{1.8cm}|p{4cm}|p{4cm}|p{2.2cm}|p{1.5cm}|}
+\hline
+\textbf{Mã TC} & \textbf{Mô tả} & \textbf{Kết quả mong đợi} & \textbf{Kết quả thực tế} & \textbf{Kết quả} \\ \hline
+BE-SU-01 & Kiểm tra middleware xác thực & Người dùng được xác thực đúng & Xác thực thành công & Pass \\ \hline
+BE-SU-02 & Token có mặt trong header request & Token luôn được gửi kèm & Có mặt & Pass \\ \hline
+BE-SU-03 & Token không nằm trong blacklist & Token chưa bị thu hồi & Không trong blacklist & Pass \\ \hline
+BE-SU-04 & Giải mã token chính xác & Token decode ra đúng payload & Decode đúng & Pass \\ \hline
+BE-SU-05 & Token chứa đủ thông tin (user, id, role) & Có username, userID, role & Đầy đủ thông tin & Pass \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Kiểm thử chức năng Thêm khóa học (Add Courses)}
+
+\subsubsection{Frontend}
+\begin{table}[H]
+\centering
+\caption{Kiểm thử frontend – Thêm khóa học}
+\label{tab:fe_course}
+\begin{tabular}{|p{1.8cm}|p{4cm}|p{4cm}|p{2.2cm}|p{1.5cm}|}
+\hline
+\textbf{Mã TC} & \textbf{Mô tả} & \textbf{Kết quả mong đợi} & \textbf{Kết quả thực tế} & \textbf{Kết quả} \\ \hline
+FE-AD-01 & Form thêm khóa học render không lỗi & Form hiển thị thành công & Hiển thị đúng & Pass \\ \hline
+FE-AD-02 & Tất cả trường dữ liệu hiển thị & Các trường (title, desc, price, ...) hiển thị & Hiển thị đầy đủ & Pass \\ \hline
+FE-AD-03 & Các trường rỗng ban đầu & Tất cả trường đều trống & Đúng & Pass \\ \hline
+FE-AD-04 & Nhập liệu cập nhật đúng state & Giá trị thay đổi theo người dùng & Cập nhật đúng & Pass \\ \hline
+FE-AD-05 & Nút submit gọi hàm handleSubmit & Hàm được kích hoạt & Đúng & Pass \\ \hline
+FE-AD-06 & Hàm addProduct được gọi khi submit & addProduct chạy & Đã gọi & Pass \\ \hline
+FE-AD-07 & Điều hướng sau khi gửi thành công & Chuyển đến trang danh sách khóa học & Chuyển hướng đúng & Pass \\ \hline
+FE-AD-08 & Hiển thị alert sau khi thêm thành công & Có thông báo "Thêm thành công" & Hiển thị alert & Pass \\ \hline
+FE-AD-09 & Hàm handleChange cập nhật state chính xác & State thay đổi theo input & Đúng & Pass \\ \hline
+FE-AD-10 & Các component render đúng theo quyền & Admin/Teacher thấy được form thêm & Đúng & Pass \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Backend}
+\begin{table}[H]
+\centering
+\caption{Kiểm thử backend – API Quản lý khóa học}
+\label{tab:be_course}
+\begin{tabular}{|p{1.8cm}|p{4cm}|p{4cm}|p{2.2cm}|p{1.5cm}|}
+\hline
+\textbf{Mã TC} & \textbf{Mô tả} & \textbf{Kết quả mong đợi} & \textbf{Kết quả thực tế} & \textbf{Kết quả} \\ \hline
+BE-CS-01 & GET /all trả về mã 200 & Status 200 & 200 OK & Pass \\ \hline
+BE-CS-02 & GET / trả về mã 200 & Status 200 & 200 OK & Pass \\ \hline
+BE-CS-03 & GET / trả về đúng số lượng khóa học & Số lượng khớp với DB & Khớp & Pass \\ \hline
+BE-CS-04 & GET /:courseID trả về 200 & Status 200 & 200 OK & Pass \\ \hline
+BE-CS-05 & GET /:courseID trả về đúng khóa học & Thông tin khóa học chính xác & Đúng & Pass \\ \hline
+BE-CS-06 & POST /add trả về 201 & Status 201 (Created) & 201 & Pass \\ \hline
+BE-CS-07 & PUT /update/:courseID trả về 202 & Status 202 (Accepted) & 202 & Pass \\ \hline
+BE-CS-08 & DELETE /delete/:courseID trả về 200 & Status 200 & 200 & Pass \\ \hline
+BE-CS-09 & Người dùng chưa xác thực không thể truy cập & Trả về 401 Unauthorized & 401 & Pass \\ \hline
+BE-CS-10 & Xử lý lỗi phù hợp (thiếu dữ liệu, ID sai) & Trả về 400 Bad Request & 400 & Pass \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Kiểm thử chức năng Thêm người dùng (Add Users)}
+
+\subsubsection{Frontend}
+\begin{table}[H]
+\centering
+\caption{Kiểm thử frontend – Quản lý người dùng}
+\label{tab:fe_user}
+\begin{tabular}{|p{1.8cm}|p{4cm}|p{4cm}|p{2.2cm}|p{1.5cm}|}
+\hline
+\textbf{Mã TC} & \textbf{Mô tả} & \textbf{Kết quả mong đợi} & \textbf{Kết quả thực tế} & \textbf{Kết quả} \\ \hline
+FE-UR-01 & Endpoint lấy tất cả user chỉ dành cho admin & Chỉ admin mới xem được danh sách & Đúng & Pass \\ \hline
+FE-UR-02 & Đăng ký tạo user mới & User mới được tạo & Tạo thành công & Pass \\ \hline
+FE-UR-03 & Đăng nhập với thông tin đúng & Xác thực thành công & Đúng & Pass \\ \hline
+FE-UR-04 & Cập nhật thông tin user & Cập nhật thành công & Đúng & Pass \\ \hline
+FE-UR-05 & Xóa user chỉ khi người dùng là admin & Chỉ admin mới xóa được & Đúng & Pass \\ \hline
+FE-UR-06 & Đăng xuất thêm token vào blacklist & Token bị vô hiệu hóa & Đúng & Pass \\ \hline
+FE-UR-07 & Lấy danh sách khóa học của user & Trả về đúng khóa học đã ghi danh & Đúng & Pass \\ \hline
+FE-UR-08 & Thêm khóa học vào danh sách user & Cập nhật thành công & Đúng & Pass \\ \hline
+FE-UR-09 & Nâng cấp user lên vai trò teacher & Role được cập nhật thành teacher & Đúng & Pass \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Backend (Model)}
+\begin{table}[H]
+\centering
+\caption{Kiểm thử backend – Model User}
+\label{tab:be_usermodel}
+\begin{tabular}{|p{1.8cm}|p{4cm}|p{4cm}|p{2.2cm}|p{1.5cm}|}
+\hline
+\textbf{Mã TC} & \textbf{Mô tả} & \textbf{Kết quả mong đợi} & \textbf{Kết quả thực tế} & \textbf{Kết quả} \\ \hline
+BE-UM-01 & Model User được tạo đúng cấu trúc & Có các trường cần thiết & Đúng & Pass \\ \hline
+BE-UM-02 & Kiểu dữ liệu các trường chính xác & String, Date, ObjectId,... & Đúng & Pass \\ \hline
+BE-UM-03 & Giá trị mặc định của role là 'user' & role = 'user' & Đúng & Pass \\ \hline
+BE-UM-04 & Version key \_\_v được tắt (set false) & \_\_v không xuất hiện & Đúng & Pass \\ \hline
+\end{tabular}
+\end{table}
+
+\section{Đánh giá kết quả kiểm thử}
+Tổng số test case được thực hiện: \textbf{38 ca} (bao gồm frontend và backend của 3 chức năng chính). Kết quả:
+\begin{itemize}
+    \item Số lượng Pass: \textbf{38/38} (đạt 100\%)
+    \item Số lượng Fail: 0
+\end{itemize}
+Tất cả các ca kiểm thử đều cho kết quả như mong đợi, không phát sinh lỗi nghiêm trọng. Hệ thống hoạt động ổn định, đáp ứng các yêu cầu chức năng đã đề ra.
+
+Một số điểm mạnh sau kiểm thử:
+\begin{itemize}
+    \item Các form frontend nhập liệu và xác thực cơ bản hoạt động tốt.
+    \item Hệ thống phân quyền (admin, teacher, user) được bảo vệ chặt chẽ ở cả frontend và backend.
+    \item Các API CRUD cho khóa học và người dùng trả về mã trạng thái HTTP chính xác.
+    \item Xác thực JWT hoạt động ổn định, token được sinh ra, xác minh và thu hồi (blacklist) đúng.
+\end{itemize}
+
+\section{Kết luận chương}
+Chương 5 trình bày chi tiết quá trình kiểm thử hệ thống. Kết quả cho thấy hệ thống đáp ứng được các yêu cầu về mặt chức năng, không có lỗi nghiêm trọng. Điều này khẳng định chất lượng của sản phẩm phần mềm, sẵn sàng cho việc triển khai thử nghiệm thực tế. Các kiểm thử về hiệu năng và bảo mật sâu hơn sẽ được thực hiện nếu có thời gian phát triển tiếp.

@@ -1,0 +1,850 @@
+================================================================================
+  FILE EXPLANATION — E-LEARNING PLATFORM (MERN Stack)
+  Ý nghĩa, chức năng và logic quan trọng của từng file trong dự án
+================================================================================
+
+MỤC LỤC:
+  I.   BACKEND
+  II.  FRONTEND
+  III. CÁC FILE CẤU HÌNH KHÁC
+
+
+================================================================================
+I. BACKEND
+================================================================================
+
+
+1. backend/index.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: File khởi động chính của Backend server (Express.js).
+
+🔧 Chức năng:
+  - Khởi tạo Express app
+  - Cấu hình CORS, JSON parser
+  - Đăng ký tất cả các route:
+    /users, /courses, /videos, /quizzes, /payment, /certificate, /ai-assistant
+  - Kết nối MongoDB qua connectDB()
+  - Lắng nghe ở port 5001 (hoặc PORT từ .env)
+  - Endpoint /regenerateToken: Tạo JWT mới từ Refresh Token
+
+⚙️ Logic quan trọng:
+  - connectDB() được gọi trước khi listen để đảm bảo DB sẵn sàng
+  - Xử lý lỗi EADDRINUSE (port đã được dùng)
+  - process.exit(1) khi kết nối DB thất bại
+
+
+2. backend/db.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Kết nối đến MongoDB.
+
+🔧 Chức năng:
+  - Đọc MONGODB_URI từ .env
+  - Kết nối Mongoose đến MongoDB
+
+⚙️ Logic quan trọng:
+  - Sử dụng mongoose.connect() với các options mặc định
+
+
+3. backend/blacklist.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Blacklist lưu token JWT đã logout.
+
+🔧 Chức năng:
+  - Mảng chứa token bị vô hiệu hóa
+  - Dùng trong users.middleware.js để kiểm tra token còn hợp lệ không
+
+⚙️ Logic quan trọng:
+  - Lưu trong RAM server (mất khi restart)
+  - Nên dùng Redis cho production
+
+
+4. backend/package.json
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Quản lý dependencies và scripts cho Backend.
+
+📦 Dependencies chính:
+  - express: Web framework
+  - mongoose: ODM MongoDB
+  - jsonwebtoken: JWT auth
+  - bcrypt: Hash password
+  - cors: Cross-Origin
+  - multer: Upload file
+  - @google/genai: Gemini AI
+  - pdf-parse: Trích xuất text từ PDF
+  - dotenv: Biến môi trường
+  - nodemon: Auto-restart khi dev
+
+
+5. backend/.env (cần tạo)
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Biến môi trường cho Backend.
+
+🔧 Nội dung:
+  PORT=5001
+  MONGODB_URI=mongodb+srv://...
+  JWT_SECRET=...
+  GEMINI_API_KEY=...
+
+
+6. backend/middlewares/users.middleware.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Middleware xác thực JWT.
+
+🔧 Chức năng:
+  - Đọc token từ header Authorization
+  - Kiểm tra blacklist
+  - Verify JWT với secret "SRM"
+  - Gán userId, username, role vào req.body
+
+⚙️ Logic quan trọng:
+  - Nếu token hết hạn → 401 "not authorized"
+  - Nếu token trong blacklist → 401 "Please Login Again"
+  - Decoded token chứa: userId, user, role
+
+
+7. backend/helpers/courseAccess.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Kiểm tra quyền truy cập nội dung khóa học.
+
+🔧 Chức năng:
+  - Hàm canUserAccessCourseContent(userId, courseId)
+  - Kiểm tra user đã enroll chưa (user.course có chứa courseId)
+  - Admin luôn được truy cập
+  - Teacher được truy cập nếu là course của họ
+
+⚙️ Logic quan trọng:
+  - Trả về { ok: true, user } nếu được phép
+  - Trả về { ok: false, status: 403, code: "NOT_ENROLLED" } nếu không
+  - Dùng trong: quiz.route.js, aiAssistant.route.js
+
+
+8. backend/helpers/aiAssistant.helper.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Helper tích hợp Google Gemini AI với RAG (Retrieval-Augmented Generation).
+
+🔧 Chức năng:
+  - Khởi tạo GoogleGenAI client (nếu có API key)
+  - loadCourseContext(courseId): Đọc nội dung khóa học từ file data/course_[id].txt
+  - extractTextFromPDF(filePath): Trích xuất text từ file PDF
+  - buildSystemPrompt(courseContext): Tạo system prompt với context
+  - isAnswerWithinContext(question, answer, context): Kiểm tra câu trả lời có trong phạm vi không
+  - queryAIAssistant(courseId, userQuestion): Gọi Gemini API
+
+⚙️ Logic quan trọng:
+  - extractResponseText(response): Parse response Gemini dù ở format nào (v1 text, v2 candidates)
+  - Fallback nếu không có API key → thông báo thân thiện
+  - isAnswerWithinContext: Kiểm tra keyword matching để chống AI "bịa" ngoài context
+  - System prompt bằng tiếng Việt, yêu cầu AI chỉ trả lời trong nội dung khóa học
+
+
+9. backend/models/users.models.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Schema và Model cho User.
+
+🔧 Schema:
+  name: String
+  email: String
+  password: String
+  age: Number
+  city: String
+  job: String
+  course: [ObjectId] — danh sách course đã enroll
+  role: String (default: "user") — "user" | "teacher" | "admin"
+  image: String
+  isPromotion: Boolean
+
+⚙️ Logic quan trọng:
+  - role mặc định là "user"
+  - course là mảng ObjectId tham chiếu đến course collection
+  - versionKey: false (không tạo __v)
+
+
+10. backend/models/courses.model.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Schema và Model cho Course.
+
+🔧 Schema:
+  title, description, category, teacher, teacherId
+  price, createdAt, img, videos: [ObjectId]
+  status: "pending" | "published" | "rejected"
+
+⚙️ Logic quan trọng:
+  - status kiểm soát luồng duyệt khóa học
+  - videos là mảng ObjectId tham chiếu đến videos collection
+
+
+11. backend/models/video.model.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Schema và Model cho Video.
+
+🔧 Schema:
+  title, description, link (URL YouTube), img (thumbnail)
+  courseId: ObjectId → course
+  teacherId: ObjectId → user (teacher)
+
+⚙️ Logic quan trọng:
+  - link: URL video YouTube/ online
+  - courseId liên kết video với course
+
+
+12. backend/models/quiz.model.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Schema và Model cho Quiz.
+
+🔧 Schema:
+  videoId: ObjectId → video
+  courseId: ObjectId → course
+  title: String
+  questions: Array of { prompt, choices, correctIndex }
+
+⚙️ Logic quan trọng:
+  - Mỗi video chỉ có 1 quiz (upsert)
+  - questions chứa cả đáp án đúng (correctIndex) — chỉ gửi lên khi tạo, không gửi xuống khi GET
+
+
+13. backend/models/submission.model.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Schema và Model cho bài nộp quiz.
+
+🔧 Schema:
+  userId, videoId, courseId, quizId
+  score: Number (%), answers: [Number]
+
+⚙️ Logic quan trọng:
+  - answers: mảng index đáp án user chọn
+  - score: phần trăm đúng (0-100)
+  - Dùng để tính điểm trung bình cho Certificate
+
+
+14. backend/models/certificate.model.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Schema và Model cho Certificate.
+
+🔧 Schema:
+  userId, courseId, studentName, courseName
+  certificateId: String (unique) — VD: "CERT-XXXX-XXXX"
+  certificateNumber: String (unique) — VD: "ELXXXX"
+  issuedDate: Date
+
+⚙️ Logic quan trọng:
+  - certificateId và certificateNumber là unique, tự sinh
+  - userId + courseId không unique (1 user chỉ được 1 cert/course)
+
+
+15. backend/models/blacklist.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Model MongoDB cho blacklist token.
+
+🔧 Chức năng:
+  - Lưu token đã logout vào database
+  - index: token (unique)
+
+
+16. backend/routes/users.routes.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Route xử lý Authentication và User.
+
+🔧 Endpoints:
+  - POST /users/signup: Đăng ký (hash password với bcrypt)
+  - POST /users/login: Đăng nhập (so sánh password, trả JWT)
+  - POST /users/logout: Đăng xuất (thêm token vào blacklist)
+  - PATCH /users/update/:id: Cập nhật profile
+  - GET /users/enrollment/:courseId: Kiểm tra enrollment
+
+⚙️ Logic quan trọng:
+  - JWT chứa: userId, user, role
+  - Bcrypt salt rounds = 5
+  - Enrollment check: kiểm tra courseId trong user.course
+
+
+17. backend/routes/courses.route.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Route CRUD cho Course.
+
+🔧 Endpoints:
+  - GET /courses/all: Lấy tất cả course published (public)
+  - GET /courses/:courseID: Chi tiết 1 course (public)
+  - POST /courses/add: Tạo course (admin/teacher)
+  - PATCH /courses/update/:courseID: Sửa course
+  - DELETE /courses/delete/:courseID: Xóa course
+  - PATCH /courses/approve/:courseID: Duyệt course (admin)
+  - PATCH /courses/reject/:courseID: Từ chối (admin)
+  - GET /courses/pending: Pending courses (admin)
+
+⚙️ Logic quan trọng:
+  - /courses/all chỉ trả về status: "published"
+  - Teacher tạo → status = "pending", Admin tạo → status = "published"
+  - Hỗ trợ query params: q (search), category, sortBy, sortOrder, page, limit
+
+
+18. backend/routes/videos.route.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Route CRUD cho Video.
+
+🔧 Endpoints:
+  - GET /videos/courseVideos/:courseId: Lấy videos của 1 course
+  - POST /videos/add: Thêm video
+  - PATCH /videos/update/:id: Sửa video
+  - DELETE /videos/delete/:id: Xóa video
+
+
+19. backend/routes/quiz.route.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Route xử lý Quiz và Submission.
+
+🔧 Endpoints:
+  - POST /quizzes/: Tạo/cập nhật quiz (upsert)
+  - GET /quizzes/video/:videoId: Lấy quiz (KHÔNG có đáp án)
+  - POST /quizzes/video/:videoId/submit: Nộp bài
+
+⚙️ Logic quan trọng (phần quan trọng nhất):
+  - canUserAccessCourseContent: Kiểm tra quyền trước khi cho làm quiz
+  - Khi GET quiz: ẨN correctIndex khỏi response (chỉ gửi prompt + choices)
+  - Khi submit: So sánh answers với correctIndex → tính score + percent
+  - Lưu submission với score = percent (0-100)
+  - validateQuestionsPayload: Kiểm tra định dạng questions
+
+
+20. backend/routes/payment.route.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Route xử lý thanh toán (chưa hoàn thiện).
+
+🔧 Endpoints:
+  - POST /payment/checkout: Tạo payment intent
+  - POST /payment/success: Xử lý sau khi thanh toán thành công
+
+
+21. backend/routes/certificate.route.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Route xử lý Certificate.
+
+🔧 Endpoints:
+  - POST /certificate/issue/:courseId: Cấp chứng chỉ
+  - GET /certificate/list: Danh sách chứng chỉ của user
+  - GET /certificate/:id: Chi tiết 1 chứng chỉ
+  - GET /certificate/check/:courseId: Kiểm tra eligibility
+
+⚙️ Logic quan trọng:
+  - generateCertificateId(): "CERT-" + timestamp(36) + random(4)
+  - generateCertificateNumber(): "EL" + timestamp(4) + random(4)
+  - Khi issue: Kiểm tra (1) enrollment, (2) tất cả video có submission, (3) averageScore >= 80%
+  - Mỗi video lấy best score từ các lần submit khác nhau
+  - Certificate là unique cho mỗi user + course
+
+
+22. backend/routes/aiAssistant.route.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Route cho AI Assistant.
+
+🔧 Endpoints:
+  - POST /ai-assistant/ask: Hỏi AI về nội dung khóa học
+  - POST /ai-assistant/upload-pdf: Upload PDF (admin/teacher)
+
+⚙️ Logic quan trọng:
+  - /ask: Kiểm tra enrollment → gọi queryAIAssistant → trả response
+  - /upload-pdf: Chỉ admin/teacher → multer nhận file → extract text → lưu data/course_[id].txt
+  - Giới hạn file 15MB, chỉ PDF
+  - Xóa file tạm sau khi xử lý
+
+
+
+================================================================================
+II. FRONTEND
+================================================================================
+
+
+23. frontend/src/index.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Entry point của React app.
+
+🔧 Chức năng:
+  - Render App component vào DOM
+  - Bao bọc bởi BrowserRouter, ChakraProvider, Redux Provider
+
+
+24. frontend/src/App.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Component gốc.
+
+🔧 Chức năng:
+  - Render Navbar
+  - Render AllRoute (tất cả routes)
+  - Render LoadingComponent (global)
+
+
+25. frontend/src/config/api.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Cấu hình URL backend.
+
+🔧 Chức năng:
+  - Đọc REACT_APP_API_URL từ .env (mặc định http://localhost:5001)
+  - Export API_BASE_URL (không có trailing slash)
+
+
+26. frontend/src/index.css
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Global CSS.
+
+🔧 Nội dung: Import Tailwind CSS directives
+
+
+27. frontend/tailwind.config.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Cấu hình Tailwind CSS (nếu dùng).
+
+
+28. frontend/package.json
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Quản lý dependencies Frontend.
+
+📦 Dependencies chính:
+  react, react-dom, react-router-dom, react-redux, redux
+  @chakra-ui/react, @chakra-ui/icons (UI)
+  axios (HTTP client)
+  react-player (video)
+  react-markdown, remark-gfm (Markdown cho AI chat)
+  html2canvas (export certificate PNG)
+  chart.js, react-chartjs-2 (statistics)
+
+
+29. frontend/src/Redux/Store.js
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Redux Store.
+
+🔧 Chức năng:
+  - combineReducers: UserReducer, ProductReducer, AdminReducer, TeacherReducer
+  - applyMiddleware: redux-thunk
+
+
+30. frontend/src/Redux/UserReducer/
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Redux slice cho User.
+
+🔧 actionType.js:
+  - actionLoginSuccess: Lưu thông tin user + token vào store
+  - actionUserLogout: Xóa toàn bộ state
+
+🔧 reducer.js:
+  - State: email, name, role, token, isAuth, userId, age, job, place
+  - Khi login: lưu từ localStorage
+  - Khi logout: reset về mặc định
+
+🔧 action.js:
+  - capitalizeFirstLetter: Utility function
+
+
+31. frontend/src/Redux/AdminReducer/
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Redux slice cho Admin.
+
+🔧 action.js:
+  - getProduct: Fetch courses với pagination
+  - deleteProduct: Xóa course
+  - approveCourse: Duyệt course (gọi PATCH /courses/approve)
+  - rejectCourse: Từ chối course
+
+
+32. frontend/src/Redux/TeacherReducer/
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Redux slice cho Teacher.
+
+🔧 action.js:
+  - getProduct: Fetch courses của teacher
+  - deleteProduct: Xóa course
+  - convertDateFormat: Format ngày tháng
+
+
+33. frontend/src/Redux/ProductReducer/
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Redux slice cho sản phẩm/discount (có thể không dùng).
+
+
+34. frontend/src/routes/AllRoute.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Định nghĩa tất cả routes của ứng dụng.
+
+🔧 Routes:
+  / → LandingPage
+  /login, /signup
+  /home → UserDashboard (private)
+  /course/:id → SinglePage (private)
+  /course/:id/enroll → CourseEnrollPage
+  /course/:id/learn → CourseLearnPage (video + quiz + AI + cert)
+  /certificates → CertificatesPage
+  /profile → ProfilePage
+  /payment → Payment
+  /admin/* → Admin routes (AdminRoute bảo vệ)
+  /Teacher/* → Teacher routes (TeacherRoute bảo vệ)
+
+
+35. frontend/src/routes/PrivateRoutes.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Bảo vệ route yêu cầu đăng nhập.
+
+⚙️ Logic:
+  - Kiểm tra isAuth từ UserReducer
+  - Nếu chưa login → redirect /login
+
+
+36. frontend/src/routes/AdminRoute.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Bảo vệ route chỉ admin mới truy cập được.
+
+⚙️ Logic:
+  - Kiểm tra role === "admin"
+  - Nếu không → redirect /home
+
+
+37. frontend/src/routes/TeacherRoute.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Bảo vệ route chỉ teacher mới truy cập được.
+
+
+38. frontend/src/Pages/LandingPage.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Trang chủ (không cần đăng nhập).
+
+🔧 Sections: Navbar, LandingPageCarousel, Section1-6, Footer
+
+
+39. frontend/src/Pages/UserDashboard.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Dashboard người dùng (sau khi đăng nhập).
+
+🔧 Sections:
+  - UserNavbar + UserSlider (hero)
+  - CourseComponent (All Courses, In Progress, Categories)
+  - Footer
+
+
+40. frontend/src/Pages/CourseLearnPage.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Trang học khóa học (quan trọng nhất).
+
+🔧 Chức năng (complex component):
+  1. Xác thực: Kiểm tra token + enrollment
+  2. Load videos: Fetch từ /videos/courseVideos/:id
+  3. Video player: ReactPlayer với YouTube
+  4. Sidebar tabs: "Course Content" (danh sách videos) + "AI Assistant" (chat)
+  5. Quiz: Load quiz cho video hiện tại, cho phép submit, hiện kết quả
+  6. Certificate Section: Kiểm tra eligibility, nút "Get My Certificate"
+
+⚙️ Logic quan trọng:
+  - Phase management: loading → ready | error
+  - handleQuizSubmit: Gửi đáp án → nhận score → hiện toast
+  - handleIssueCertificate: POST /certificate/issue → redirect /certificates
+  - checkCert: GET /certificate/check → hiển thị progress (videosCompleted, averageScore)
+  - Tích hợp AIAssistantChat trong TabPanel thứ 2 của sidebar
+
+
+41. frontend/src/Pages/CertificatesPage.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Trang hiển thị và tải chứng chỉ.
+
+🔧 Chức năng:
+  - Fetch list certificates từ /certificate/list
+  - Hiển thị grid các certificate (courseName, studentName, ngày, số)
+  - Nút "Download Image": Tạo HTML template → html2canvas → download PNG
+
+⚙️ Logic quan trọng:
+  - getCertificateHTML(cert): Tạo HTML cho certificate với border vàng, font serif
+  - downloadImage: Tạo div ẩn → render HTML → html2canvas → click download
+  - Sử dụng API_BASE_URL thay vì hardcode
+
+
+42. frontend/src/Pages/CourseEnrollPage.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Trang đăng ký khóa học (hiển thị thông tin + nút Enroll).
+
+
+43. frontend/src/Pages/ProfilePage.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Trang chỉnh sửa profile người dùng.
+
+🔧 Chức năng:
+  - Form: Name, Email, Password, Age, City, Job
+  - Avatar hiển thị
+  - Nút Save → PATCH /users/update/:id
+
+
+44. frontend/src/Pages/Navbar.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Navbar cho LandingPage (chưa đăng nhập).
+
+🔧 Links: Explore, Courses (dropdown), Login, Signup
+
+
+45. frontend/src/Pages/Footer.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Footer chung cho toàn bộ ứng dụng.
+
+
+46. frontend/src/components/LogIn.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Form đăng nhập.
+
+🔧 Chức năng:
+  - Email + Password
+  - Gọi API /users/login
+  - Lưu token + user info vào Redux + localStorage
+
+
+47. frontend/src/components/SignUp.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Form đăng ký.
+
+🔧 Chức năng:
+  - Name, Email, Password, Age, City, Job
+  - Gọi API /users/signup
+  - showToast: Utility hiển thị toast
+
+
+48. frontend/src/components/UserComponents/UserNavbar.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Navbar cho user đã đăng nhập.
+
+🔧 Chức năng:
+  - Logo + Search bar
+  - Dropdown (profile menu)
+  - Nút cart
+
+
+49. frontend/src/components/UserComponents/Dropdown.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Menu dropdown profile (góc phải navbar).
+
+🔧 Menu items theo role:
+  - User: Your Account, Dashboard, 🎓 Course Certificate, Logout
+  - Admin: Your Account, User Dashboard, Admin Dashboard, Courses, Users, Videos, Discount, GiftCards, Statistics, Settings, 🎓 Course Certificate
+  - Teacher: Your Account, User Dashboard, Teacher Dashboard, Courses, Add Videos, Settings, 🎓 Course Certificate
+
+
+50. frontend/src/components/UserComponents/CourseComponent.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Component hiển thị các section khóa học trên Dashboard.
+
+🔧 Sections:
+  - All Courses (sử dụng AllCoursesGrid mới)
+  - In Progress Courses (InProgressCarousel)
+  - Top courses in Business (CategoryCarousel)
+  - Top courses in IT & Software
+  - Top courses in Personal Development
+
+
+51. frontend/src/components/UserComponents/AllCoursesGrid.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Component hiển thị tất cả khóa học dạng Grid + Pagination.
+
+🔧 Chức năng:
+  - Fetch từ /courses/all?limit=100
+  - Grid responsive: 5 cột desktop, 3 tablet, 2 sm, 1 mobile
+  - Phân trang 10 items/trang với slice()
+  - Thanh pagination: [Trang trước] [1] [2] ... [10] [Trang sau]
+  - Page hiện tại màu tím đậm
+
+⚙️ Logic quan trọng:
+  - getPageNumbers(): Tạo mảng page number với dấu "..." khi nhiều trang
+  - handlePageChange: set currentPage + scroll to top
+
+
+52. frontend/src/components/UserComponents/InProgressCarousel.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Carousel hiển thị khóa học đang học dở (có enrollment + resume link).
+
+
+53. frontend/src/Pages/LandingPageComponents/LandingPageCarousel.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Slider hiển thị tất cả khóa học published.
+
+🔧 Chức năng:
+  - Fetch /courses/all
+  - react-slick slider với responsive breakpoints
+  - Mỗi slide là Card component
+
+
+54. frontend/src/Pages/LandingPageComponents/CategoryCarousel.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Slider hiển thị khóa học theo category.
+
+🔧 Chức năng:
+  - Fetch /courses/all?category=...
+  - Props: category (Business, IT & Software, Personal Development)
+
+
+55. frontend/src/Pages/LandingPageComponents/Card.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Card hiển thị 1 khóa học.
+
+🔧 Nội dung:
+  - Image (img hoặc random từ mảng image mặc định)
+  - Category badge
+  - Title
+  - Description (80 ký tự đầu)
+  - "Earn a degree" với icon graduation cap
+  - Link đến /course/:id
+
+
+56. frontend/src/Pages/LandingPageComponents/Section1.jsx → Section6.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Các section giới thiệu trên LandingPage (marketing content).
+
+
+57. frontend/src/components/AIAssistantChat.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Widget chat với AI Assistant.
+
+🔧 Chức năng:
+  - Input text → gửi POST /ai-assistant/ask
+  - Hiển thị messages: user (purple) + AI (gray) + error (red)
+  - AI message dùng ReactMarkdown để render đẹp
+  - Badge "✓ OK" hoặc "⚠ Out" cho biết AI có trả lời trong context không
+  - Scroll to bottom tự động
+  - Enter để gửi
+
+⚙️ Logic quan trọng:
+  - handleSendMessage: Gọi API → thêm message vào state
+  - CSS cho Markdown: pre (code block), code (inline), h3, ul/ol
+
+
+58. frontend/src/components/AdminUploadPDFContext.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Component upload PDF cho admin/teacher (dùng trong quản lý khóa học).
+
+🔧 Chức năng:
+  - Chọn file PDF (tối đa 15MB)
+  - Upload lên /ai-assistant/upload-pdf
+  - Hiển thị tên file + kích thước
+  - Xác thực: chỉ PDF
+
+⚙️ Logic quan trọng:
+  - FormData với file + courseId
+  - Xóa selectedFile sau khi upload thành công
+
+
+59. frontend/src/components/Adminitems/Courses.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Trang quản lý khóa học (Admin).
+
+🔧 Chức năng:
+  - Table khóa học với phân trang + search + filter status
+  - Nút Approve/Reject cho pending courses
+  - Nút Edit, Delete
+  - Nút Upload Material (AdminUploadPDFContext)
+
+
+60. frontend/src/components/Adminitems/DashBoard.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Admin Dashboard với thống kê (Chart.js).
+
+
+61. frontend/src/components/Adminitems/Users.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Quản lý users (Admin).
+
+
+62. frontend/src/components/Adminitems/Statistics.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Thống kê chi tiết (Admin).
+
+
+63. frontend/src/components/TeacherComponents/TeacherCourses.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Trang quản lý khóa học (Teacher).
+
+🔧 Chức năng:
+  - Table khóa học của teacher
+  - Nút Create, Edit, Delete, Lesson quiz, Upload Material
+
+
+64. frontend/src/components/TeacherComponents/TeacherCreateQuiz.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Trang tạo quiz cho từng video trong course.
+
+🔧 Chức năng:
+  - Chọn video → thêm câu hỏi (prompt, choices, correctIndex)
+  - Submit → POST /quizzes/
+
+
+65. frontend/src/components/singlePageComps/SinglePage.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Trang chi tiết khóa học (trước khi enroll).
+
+🔧 Nội dung: Mô tả, videos list, teacher info, nút Enroll
+
+
+66. frontend/src/components/singlePageComps/SingleList.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Danh sách videos trong SinglePage.
+
+
+67. frontend/src/components/Adminitems/AddCourse.jsx & AddTeacher.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Form thêm khóa học (Admin và Teacher).
+
+
+68. frontend/src/components/LoadingComponents/LoadingComponent.jsx
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Component loading skeleton (spinner).
+
+
+
+================================================================================
+III. CÁC FILE KHÁC
+================================================================================
+
+
+69. backend/.env.example
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: File mẫu cho .env (hướng dẫn biến môi trường cần thiết).
+
+
+70. backend/Dockerfile
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Dockerfile cho backend (deploy container).
+
+
+71. backend/vercel.json
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Cấu hình deploy lên Vercel (serverless functions).
+
+
+72. backend/.dockerignore
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: File bỏ qua khi build Docker.
+
+
+73. docker-compose.yml
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Docker compose cho toàn bộ ứng dụng (backend + MongoDB).
+
+
+74. backend/data/README.md
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Giải thích cách lưu trữ course material cho AI.
+
+
+75. backend/data/course_demo.txt
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Nội dung demo cho AI Assistant (JavaScript cơ bản).
+📌 Dùng khi: Chưa có file course_[courseId].txt cho course đó.
+
+
+76. backend/data/course_*.txt
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Nội dung khóa học đã được trích xuất từ PDF.
+📌 Cách tạo: Admin/Teacher upload PDF → backend extract text → lưu tại đây.
+
+
+77. screenshots/
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Ảnh chụp màn hình ứng dụng (dùng trong README).
+
+
+78. Docs/
+────────────────────────────────────────────────────────────────────────────────
+📌 Ý nghĩa: Thư mục tài liệu (báo cáo, slide, file excel testing).
+
+
+================================================================================
+HẾT
+================================================================================
