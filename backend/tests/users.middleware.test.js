@@ -1,6 +1,6 @@
-const { auth } = require('../ci-cd-pipelines/backend/middlewares/users.middleware');
+const { auth } = require('../middlewares/users.middleware');
 const jwt = require('jsonwebtoken');
-const { blacklist } = require('../ci-cd-pipelines/backend/blacklist');
+const { blacklist } = require('../blacklist');
 
 // Mock jsonwebtoken
 jest.mock('jsonwebtoken');
