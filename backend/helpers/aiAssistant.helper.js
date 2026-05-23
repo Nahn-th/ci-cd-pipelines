@@ -267,4 +267,5 @@ module.exports = {
   queryAIAssistant,
   buildSystemPrompt,
   isAnswerWithinContext,
+  extractResponseText,
 };
