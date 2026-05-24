@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import AdminNavTop from '../src/components/AdminNavTop';
+import AdminNavTop from '../components/AdminNavTop';
 
 // Mock useSelector
 jest.mock('react-redux', () => ({

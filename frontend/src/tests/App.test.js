@@ -8,8 +8,8 @@ jest.mock('react-redux', () => ({
 }));
 
 // Mock routing and navbar components to isolate App.js logic
-jest.mock('./routes/AllRoute', () => () => <div data-testid="all-routes">All Routes Content</div>);
-jest.mock('./components/UserComponents/UserNavbar', () => () => <div data-testid="user-navbar">User Navbar</div>);
+jest.mock('../routes/AllRoute', () => () => <div data-testid="all-routes">All Routes Content</div>);
+jest.mock('../components/UserComponents/UserNavbar', () => () => <div data-testid="user-navbar">User Navbar</div>);
 
 describe('App Component - Unit Tests', () => {
   beforeEach(() => {

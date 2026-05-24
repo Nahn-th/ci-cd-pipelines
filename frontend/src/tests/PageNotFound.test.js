@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import PageNotFound from '../src/Pages/PageNotFound';
+import PageNotFound from '../Pages/PageNotFound';
 
 describe('PageNotFound Component - Unit Tests', () => {
   const renderComponent = () => {
