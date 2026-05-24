@@ -1,0 +1,19 @@
+# Cấu hình cho môi trường chạy thật trên Server (Có SSL)
+elearning-duan.duckdns.org {
+    handle_path /api/* {
+        reverse_proxy prod_backend:5001  # Trỏ đúng container_name của file prod
+    }
+    handle {
+        reverse_proxy prod_frontend:80   # Trỏ đúng container_name của file prod
+    }
+}
+
+# Cấu hình cho môi trường chạy thử ở máy cá nhân (Không có SSL)
+localhost:80 {
+    handle_path /api/* {
+        reverse_proxy web_backend:5001   # Trỏ đúng container_name của file local
+    }
+    handle {
+        reverse_proxy web_frontend:80    # Trỏ đúng container_name của file local
+    }
+}
