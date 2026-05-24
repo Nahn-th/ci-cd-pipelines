@@ -2,7 +2,7 @@ const {
   buildSystemPrompt,
   isAnswerWithinContext,
   extractResponseText,
-} = require('../ci-cd-pipelines/backend/helpers/aiAssistant.helper');
+} = require('../helpers/aiAssistant.helper');
 
 describe('AI Assistant Helper - Unit Tests', () => {
   
