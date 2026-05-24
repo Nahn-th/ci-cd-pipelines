@@ -36,7 +36,7 @@ jobs:
       - name: Cai dat thu vien va chay Unit Test frontend
         run: |
           cd frontend
-          npm ci
+          npm install
           CI=true npm test
 
       # Quet chat luong va bao mat code (SonarCloud)
