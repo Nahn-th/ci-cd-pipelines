@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import Section6 from '../src/Pages/LandingPageComponents/Section6';
+import Section6 from '../Pages/LandingPageComponents/Section6';
 
 const mockNavigate = jest.fn();
 
