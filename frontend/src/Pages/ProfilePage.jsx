@@ -74,7 +74,7 @@ const ProfilePage = () => {
         showToast({toast,message:'Profile Updated',color:'green'});
       })
       .catch((err) => {
-        showToast({toast,message:'Error occur',color:'green'});
+        showToast({toast,message:'Error ',color:'green'});
         console.log(err)
       });
   };
