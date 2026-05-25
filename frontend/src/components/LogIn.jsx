@@ -86,7 +86,7 @@ const Login = () => {
     dispatch(loginFetch(form)).then((res) => {
    const user = JSON.parse(localStorage.getItem('user'))
       if(user?.message){
-        showToast({toast,message:'Login Successful',color:'green'})
+        showToast({toast,message:'Login is Successful',color:'green'})
         setForm({ email: "", password: "" });
       }else{
         showToast({toast,message:userStore?.isError,color:'red'})
