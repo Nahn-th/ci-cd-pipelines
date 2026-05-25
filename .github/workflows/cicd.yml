@@ -39,9 +39,18 @@ jobs:
           npm install
           CI=true npm test
 
+      # Thêm bước này để giữ lại bộ nhớ quét của lần trước
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
       # Quet chat luong va bao mat code (SonarCloud)
       - name: Phan tich tinh voi SonarCloud
         uses: SonarSource/sonarcloud-github-action@master
+        if: "!contains(github.event.head_commit.message, '[skip sonar]')"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
