@@ -3,4 +3,8 @@ describe('DevOps CI/CD Pipeline Sanity Check', () => {
   it('should pass this dummy test to verify CI/CD flow', () => {
     expect(1 + 1).toBe(2);
   });
+
+  it('pass this test to verify CI/CD', () => {
+    expect(1 + 1).toBe(2);
+  });
 });
