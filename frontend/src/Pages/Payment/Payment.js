@@ -1,5 +1,4 @@
 import { useDisclosure } from "@chakra-ui/hooks";
-import { Box, Flex, Heading, Text } from "@chakra-ui/layout";
 import {
   Modal,
   ModalBody,
@@ -9,7 +8,7 @@ import {
   ModalHeader,
   ModalOverlay,
 } from "@chakra-ui/modal";
-import { Button, keyframes, useToast, Spinner, Image } from "@chakra-ui/react";
+import { Box, Flex, Heading, Text, Button, keyframes, useToast, Spinner, Image } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router";
