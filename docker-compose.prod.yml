@@ -70,6 +70,32 @@ services:
     networks:
       - web_network
 
+  loki:
+    image: grafana/loki:latest
+    container_name: prod_loki
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+    mem_limit: 300m
+    volumes:
+      - loki_data:/loki
+    networks:
+      - web_network
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: prod_promtail
+    mem_limit: 200m
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    restart: unless-stopped
+    depends_on:
+      - loki
+    networks:
+      - web_network
+
   # Giao dien bieu do Grafana
   grafana:
     image: grafana/grafana:latest
@@ -91,3 +117,4 @@ volumes:
   caddy_config:
   prometheus_data:
   grafana_data:
+  loki_data:
